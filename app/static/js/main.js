@@ -29,9 +29,22 @@ document.addEventListener("DOMContentLoaded", () => {
   const rngStressContrast = document.getElementById("rngStressContrast");
   const btnRunStress = document.getElementById("btnRunStressTest");
   const btnSwitchToStress = document.getElementById("btnSwitchToStress");
+  const btnToggleSidebar = document.getElementById("btnToggleSidebar");
+  const sidebar = document.querySelector(".sidebar");
 
   let currentAlgorithm = "SIFT";
   let selectedFiles = [];
+
+  // ─────────────────────────────────────────────────────────────
+  // Mobile Sidebar Toggle
+  // ─────────────────────────────────────────────────────────────
+  if (btnToggleSidebar && sidebar) {
+    btnToggleSidebar.addEventListener("click", () => {
+      sidebar.classList.toggle("mobile-open");
+      const isOpen = sidebar.classList.contains("mobile-open");
+      btnToggleSidebar.textContent = isOpen ? "✕ Close" : "⚙️ Settings";
+    });
+  }
 
   // ─────────────────────────────────────────────────────────────
   // Tab Switching
@@ -43,6 +56,11 @@ document.addEventListener("DOMContentLoaded", () => {
     tabContents.forEach(content => {
       content.classList.toggle("active", content.id === tabId);
     });
+    // If on mobile, close sidebar after selecting a tab
+    if (sidebar && sidebar.classList.contains("mobile-open")) {
+      sidebar.classList.remove("mobile-open");
+      if (btnToggleSidebar) btnToggleSidebar.textContent = "⚙️ Settings";
+    }
   }
 
   tabLinks.forEach(link => {
