@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSCD608 — Feature-Based Image Matching & Automatic Panorama Construction</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22%20%22100%22%20%22100%22><text y=%22.9em%22 font-size=%2290%22>🖼️</text></svg>">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <header class="navbar">
+    <div class="nav-brand">
+      <span class="nav-logo-badge">CSCD608</span>
+      <div>
+        <h1 class="nav-title">Automatic Panorama Construction System</h1>
+        <p class="nav-subtitle">Classical Vision Engine: SIFT • ORB • RANSAC • Homography • Alpha Blending</p>
+      </div>
+    </div>
+    <div class="nav-links">
+      <span class="badge badge-emerald">● System Ready</span>
+      <span class="badge">OpenCV 4.12.0</span>
+      <a href="https://github.com/mhiskall282/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem" target="_blank" class="btn-secondary" style="padding: 0.35rem 0.75rem; text-decoration: none; font-size: 0.8rem;">
+        GitHub Repo ↗
+      </a>
+    </div>
+  </header>
+
+  <!-- App Body Layout -->
+  <div class="app-container">
+    
+    <!-- Sidebar: Controls & Parameters -->
+    <aside class="sidebar">
+      
+      <!-- Action Trigger -->
+      <button id="btnRunPipeline" class="btn-primary" type="button">
+        <span>⚡ Construct Panorama</span>
+      </button>
+
+      <!-- Algorithm Selection -->
+      <div class="panel-section">
+        <label class="panel-title">1. Feature Algorithm</label>
+        <div class="algo-picker">
+          <button type="button" class="algo-btn active" data-algo="SIFT">SIFT</button>
+          <button type="button" class="algo-btn" data-algo="ORB">ORB</button>
+          <button type="button" class="algo-btn" data-algo="BOTH">Dual Benchmark</button>
+        </div>
+      </div>
+
+      <!-- Dataset Selection -->
+      <div class="panel-section">
+        <label class="panel-title">2. Input Image Source</label>
+        <div class="glass-card" style="display: flex; flex-direction: column; gap: 0.75rem;">
+          <label class="toggle-row">
+            <span>Use Sample Scene (3 views)</span>
+            <label class="switch">
+              <input type="checkbox" id="chkUsePreset" checked>
+              <span class="slider-round"></span>
+            </label>
+          </label>
+          
+          <!-- File Drop Zone -->
+          <div id="dropZone" class="upload-zone" style="display: none;">
+            <div class="upload-icon">📁</div>
+            <div class="upload-text"><strong>Drag & Drop Images</strong> or Browse</div>
+            <div class="upload-hint">Upload 2 to 6 overlapping photos</div>
+            <input type="file" id="fileInput" multiple accept="image/*" style="display: none;">
+          </div>
+          <div id="fileListBadge" style="font-size: 0.75rem; color: var(--accent-cyan); display: none;"></div>
+        </div>
+      </div>
+
+      <!-- Hyperparameters Tuning -->
+      <div class="panel-section">
+        <label class="panel-title">3. Algorithm Parameters</label>
+        <div class="glass-card" style="display: flex; flex-direction: column; gap: 1rem;">
+          
+          <!-- Lowe Ratio Test Threshold -->
+          <div class="control-group">
+            <div class="control-header">
+              <span>Lowe's Ratio Threshold (SIFT)</span>
+              <span id="valRatio" class="control-val">0.75</span>
+            </div>
+            <input type="range" id="rngRatio" min="0.50" max="0.95" step="0.05" value="0.75">
+          </div>
+
+          <!-- RANSAC Reprojection Threshold -->
+          <div class="control-group">
+            <div class="control-header">
+              <span>RANSAC Threshold (px)</span>
+              <span id="valRansac" class="control-val">5.0 px</span>
+            </div>
+            <input type="range" id="rngRansac" min="1.0" max="15.0" step="0.5" value="5.0">
+          </div>
+
+          <!-- Alpha Blend Toggle -->
+          <label class="toggle-row" style="margin-top: 0.25rem;">
+            <span>Distance Alpha Blending</span>
+            <label class="switch">
+              <input type="checkbox" id="chkAlpha" checked>
+              <span class="slider-round"></span>
+            </label>
+          </label>
+
+        </div>
+      </div>
+
+      <!-- Quick Run Experiment Shortcuts -->
+      <div class="panel-section">
+        <label class="panel-title">Quick Actions</label>
+        <button id="btnSwitchToStress" class="btn-secondary" style="width: 100%; text-align: center;">
+          🧪 Live Transformation Playground
+        </button>
+      </div>
+
+    </aside>
+
+    <!-- Main Workspace -->
+    <main class="workspace">
+      
+      <!-- Workspace Navigation Tabs -->
+      <nav class="tabs-nav">
+        <button class="tab-link active" data-tab="tabPanorama">🖼️ Final Panorama</button>
+        <button class="tab-link" data-tab="tabBenchmark">📊 SIFT vs. ORB Benchmark</button>
+        <button class="tab-link" data-tab="tabKeypoints">🔍 1. Keypoints</button>
+        <button class="tab-link" data-tab="tabRawMatches">🔗 2. Initial Matches</button>
+        <button class="tab-link" data-tab="tabRansac">🛡️ 3. Before vs. After RANSAC</button>
+        <button class="tab-link" data-tab="tabHomography">📐 4. Homography Matrix</button>
+        <button class="tab-link" data-tab="tabStress">🧪 Transformation Simulator</button>
+      </nav>
+
+      <!-- TAB 1: FINAL PANORAMA -->
+      <section id="tabPanorama" class="tab-content active">
+        
+        <!-- Metrics Bar -->
+        <div class="metrics-row" id="metricsBar" style="margin-bottom: 1.5rem;">
+          <div class="metric-card">
+            <span class="metric-label">Algorithm</span>
+            <span class="metric-value" id="metricAlgo">SIFT</span>
+            <span class="metric-trend" id="metricDescType">128-dim Float32</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Input Images</span>
+            <span class="metric-value" id="metricImgCount">3</span>
+            <span class="metric-trend">Overlapping Views</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Average Inliers</span>
+            <span class="metric-value" id="metricInliers">199</span>
+            <span class="metric-trend" id="metricInlierRatio">59.6% Consensus</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Pipeline Latency</span>
+            <span class="metric-value" id="metricTime">1.82s</span>
+            <span class="metric-trend">Full Stitch & Blend</span>
+          </div>
+        </div>
+
+        <!-- Panorama Viewport -->
+        <div class="panorama-viewport">
+          <div class="pano-toolbar">
+            <a id="btnDownloadPano" download="panorama_result.png" class="btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; text-decoration: none;">
+              ⬇ Download Panorama
+            </a>
+          </div>
+          <img id="imgPanoramaResult" src="/outputs/baseline/SIFT/panorama/panorama_SIFT_full.png" alt="Constructed Panorama">
+        </div>
+
+        <div id="panoInfoText" style="margin-top: 0.75rem; font-size: 0.85rem; color: var(--text-secondary); text-align: center;">
+          Panorama successfully constructed with distance-transform weighted alpha blending across overlapping frames.
+        </div>
+      </section>
+
+      <!-- TAB 2: DUAL BENCHMARK -->
+      <section id="tabBenchmark" class="tab-content">
+        <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem;">SIFT vs. ORB Comparative Benchmark</h2>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;" id="benchmarkGrid">
+          
+          <!-- SIFT Card -->
+          <div class="glass-card" style="border-top: 4px solid var(--accent-blue);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+              <h3 style="font-size: 1.1rem; color: var(--accent-blue);">SIFT (Scale-Invariant Feature Transform)</h3>
+              <span class="badge">Euclidean L2 Norm</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
+              Continuous scale-space Difference-of-Gaussians extrema with 128-dimensional floating-point gradient histograms.
+            </p>
+            <div class="metrics-row" style="margin-bottom: 1rem;">
+              <div class="metric-card"><span class="metric-label">Avg Keypoints</span><span class="metric-value" id="benchSiftKp">1,253</span></div>
+              <div class="metric-card"><span class="metric-label">Inlier Ratio</span><span class="metric-value" id="benchSiftRatio">59.6%</span></div>
+              <div class="metric-card"><span class="metric-label">Reproj Error</span><span class="metric-value" id="benchSiftErr">0.14 px</span></div>
+            </div>
+            <div class="card-img-wrapper">
+              <img id="benchSiftPano" src="/outputs/baseline/SIFT/panorama/panorama_SIFT_full.png" alt="SIFT Panorama">
+            </div>
+          </div>
+
+          <!-- ORB Card -->
+          <div class="glass-card" style="border-top: 4px solid var(--accent-amber);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+              <h3 style="font-size: 1.1rem; color: var(--accent-amber);">ORB (Oriented FAST & Rotated BRIEF)</h3>
+              <span class="badge badge-amber">Hamming Distance</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
+              Pyramid FAST corner detector with intensity-centroid patch orientation and 256-bit steered binary bitstrings.
+            </p>
+            <div class="metrics-row" style="margin-bottom: 1rem;">
+              <div class="metric-card"><span class="metric-label">Avg Keypoints</span><span class="metric-value" id="benchOrbKp">1,000</span></div>
+              <div class="metric-card"><span class="metric-label">Inlier Ratio</span><span class="metric-value" id="benchOrbRatio">37.7%</span></div>
+              <div class="metric-card"><span class="metric-label">Reproj Error</span><span class="metric-value" id="benchOrbErr">0.93 px</span></div>
+            </div>
+            <div class="card-img-wrapper">
+              <img id="benchOrbPano" src="/outputs/baseline/ORB/panorama/panorama_ORB_full.png" alt="ORB Panorama">
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- TAB 3: KEYPOINTS -->
+      <section id="tabKeypoints" class="tab-content">
+        <h2 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem;">Stage 2: Keypoint Detection & Orientation Assignment</h2>
+        <div id="keypointsGallery" class="gallery-grid">
+          <!-- Populated by JS -->
+        </div>
+      </section>
+
+      <!-- TAB 4: RAW MATCHES -->
+      <section id="tabRawMatches" class="tab-content">
+        <h2 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem;">Stage 3: Initial Feature Correspondences (Filtered Matches)</h2>
+        <div id="rawMatchesGallery" class="gallery-grid" style="grid-template-columns: 1fr;">
+          <!-- Populated by JS -->
+        </div>
+      </section>
+
+      <!-- TAB 5: BEFORE VS AFTER RANSAC -->
+      <section id="tabRansac" class="tab-content">
+        <h2 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem;">Stage 4: Before vs. After RANSAC Outlier Rejection</h2>
+        <div id="ransacGallery" class="gallery-grid" style="grid-template-columns: 1fr;">
+          <!-- Populated by JS -->
+        </div>
+      </section>
+
+      <!-- TAB 6: HOMOGRAPHY MATRIX -->
+      <section id="tabHomography" class="tab-content">
+        <h2 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem;">Stage 5: Estimated 3×3 Homography Matrices & Diagnostics</h2>
+        <div id="homographyContainer" style="display: flex; flex-direction: column; gap: 1rem;">
+          <!-- Populated by JS -->
+        </div>
+      </section>
+
+      <!-- TAB 7: LIVE STRESS TEST PLAYGROUND -->
+      <section id="tabStress" class="tab-content">
+        <h2 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem;">Interactive Transformation Stress Test Simulator</h2>
+        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.5rem;">
+          Simulate camera rotations, scale variations, perspective shears, and illumination shifts in real-time to inspect algorithm robustness.
+        </p>
+
+        <div style="display: grid; grid-template-columns: 320px 1fr; gap: 1.5rem;">
+          
+          <!-- Sliders -->
+          <div class="glass-card" style="display: flex; flex-direction: column; gap: 1rem;">
+            
+            <div class="control-group">
+              <div class="control-header"><span>Rotation Angle (°)</span><span id="valStressRot" class="control-val">0°</span></div>
+              <input type="range" id="rngStressRot" min="-180" max="180" step="15" value="0">
+            </div>
+
+            <div class="control-group">
+              <div class="control-header"><span>Scale Factor</span><span id="valStressScale" class="control-val">1.0x</span></div>
+              <input type="range" id="rngStressScale" min="0.5" max="2.0" step="0.25" value="1.0">
+            </div>
+
+            <div class="control-group">
+              <div class="control-header"><span>Perspective Shear (px)</span><span id="valStressShear" class="control-val">0 px</span></div>
+              <input type="range" id="rngStressShear" min="0" max="80" step="10" value="0">
+            </div>
+
+            <div class="control-group">
+              <div class="control-header"><span>Brightness Delta (β)</span><span id="valStressBright" class="control-val">0</span></div>
+              <input type="range" id="rngStressBright" min="-100" max="100" step="25" value="0">
+            </div>
+
+            <div class="control-group">
+              <div class="control-header"><span>Contrast Factor (α)</span><span id="valStressContrast" class="control-val">1.0x</span></div>
+              <input type="range" id="rngStressContrast" min="0.5" max="1.5" step="0.25" value="1.0">
+            </div>
+
+            <button id="btnRunStressTest" class="btn-primary" style="margin-top: 0.5rem;">
+              Simulate Transformation
+            </button>
+
+          </div>
+
+          <!-- Stress Results Display -->
+          <div class="glass-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+              <h3 style="font-size: 1rem;">RANSAC Inliers on Transformed Image</h3>
+              <span id="stressInlierBadge" class="badge badge-emerald">100.0% Inliers</span>
+            </div>
+            
+            <div class="card-img-wrapper" style="min-height: 320px; display: flex; align-items: center; justify-content: center;">
+              <img id="imgStressMatchViz" src="/outputs/rotation/SIFT/before_after_ransac_SIFT_ref-rot000.png" alt="Stress Test Matches">
+            </div>
+            
+            <div class="metrics-row" style="margin-top: 1rem;">
+              <div class="metric-card"><span class="metric-label">Ref Keypoints</span><span class="metric-value" id="stressRefKp">1,253</span></div>
+              <div class="metric-card"><span class="metric-label">Transformed KP</span><span class="metric-value" id="stressTransKp">1,253</span></div>
+              <div class="metric-card"><span class="metric-label">RANSAC Inliers</span><span class="metric-value" id="stressInliers">1,253</span></div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- Loading Screen Overlay -->
+  <div id="loadingOverlay" class="loading-overlay">
+    <div class="spinner"></div>
+    <div id="loadingText" class="loading-text">Executing Computer Vision Pipeline...</div>
+    <p style="font-size: 0.85rem; color: var(--text-secondary);">Detecting Keypoints → Descriptor Matching → RANSAC Homography → Dynamic Warping</p>
+  </div>
+
+  <script src="/static/js/main.js"></script>
+</body>
+</html>
