@@ -90,6 +90,13 @@ def index():
     return render_template("index.html")
 
 
+@app.route("/docs")
+@app.route("/documentation")
+def documentation():
+    """Render the in-depth GitBook-style documentation portal."""
+    return render_template("docs.html")
+
+
 @app.route("/api/presets", methods=["GET"])
 def get_presets():
     """Return available sample datasets in data/raw."""

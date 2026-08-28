@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSCD608 System Documentation — Automatic Panorama Construction</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22%20%22100%22%20%22100%22><text y=%22.9em%22 font-size=%2290%22>📖</text></svg>">
+  <style>
+    /* GitBook-style layout enhancements */
+    .docs-layout {
+      display: grid;
+      grid-template-columns: 280px 1fr 240px;
+      min-height: calc(100vh - 72px);
+      max-width: 1600px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    @media (max-width: 1200px) {
+      .docs-layout { grid-template-columns: 260px 1fr; }
+      .docs-toc { display: none; }
+    }
+    @media (max-width: 850px) {
+      .docs-layout { grid-template-columns: 1fr; }
+      .docs-sidebar { display: none; }
+    }
+
+    .docs-sidebar {
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(12px);
+      border-right: 1px solid var(--border-color);
+      padding: 1.5rem 1rem;
+      position: sticky;
+      top: 72px;
+      height: calc(100vh - 72px);
+      overflow-y: auto;
+    }
+    .docs-sidebar-group {
+      margin-bottom: 1.25rem;
+    }
+    .docs-sidebar-title {
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      padding: 0.4rem 0.75rem;
+    }
+    .docs-nav-link {
+      display: block;
+      color: var(--text-secondary);
+      padding: 0.45rem 0.75rem;
+      border-radius: var(--radius-sm);
+      text-decoration: none;
+      font-size: 0.84rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      line-height: 1.4;
+    }
+    .docs-nav-link:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .docs-nav-link.active {
+      color: var(--accent-blue);
+      background: rgba(59, 130, 246, 0.12);
+      font-weight: 700;
+    }
+
+    .docs-content {
+      padding: 2.5rem 3.5rem;
+      max-width: 900px;
+      line-height: 1.7;
+    }
+    .docs-content h1 { font-size: 2.2rem; font-weight: 900; margin-bottom: 0.5rem; color: #fff; letter-spacing: -0.02em; }
+    .docs-content h2 { font-size: 1.5rem; font-weight: 800; margin-top: 2.5rem; margin-bottom: 1rem; color: #f8fafc; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+    .docs-content h3 { font-size: 1.15rem; font-weight: 700; margin-top: 1.75rem; margin-bottom: 0.75rem; color: #93c5fd; }
+    .docs-content p { margin-bottom: 1.1rem; color: #cbd5e1; font-size: 0.95rem; }
+    .docs-content ul, .docs-content ol { margin-bottom: 1.25rem; padding-left: 1.5rem; color: #cbd5e1; font-size: 0.95rem; }
+    .docs-content li { margin-bottom: 0.4rem; }
+
+    .docs-callout {
+      border-left: 4px solid var(--accent-blue);
+      background: rgba(59, 130, 246, 0.08);
+      padding: 1rem 1.25rem;
+      border-radius: 0 var(--radius-md) var(--radius-md) 0;
+      margin: 1.5rem 0;
+    }
+    .docs-callout-title { font-weight: 700; font-size: 0.9rem; color: var(--accent-blue); margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.4rem; }
+    .docs-callout-emerald { border-left-color: var(--accent-emerald); background: rgba(16, 185, 129, 0.08); }
+    .docs-callout-emerald .docs-callout-title { color: var(--accent-emerald); }
+    .docs-callout-amber { border-left-color: var(--accent-amber); background: rgba(245, 158, 11, 0.08); }
+    .docs-callout-amber .docs-callout-title { color: var(--accent-amber); }
+
+    .code-block {
+      background: #030712;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1rem 1.25rem;
+      margin: 1.25rem 0;
+      overflow-x: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.85rem;
+      color: #93c5fd;
+    }
+
+    .docs-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+      font-size: 0.88rem;
+    }
+    .docs-table th, .docs-table td {
+      border: 1px solid var(--border-color);
+      padding: 0.65rem 0.9rem;
+      text-align: left;
+    }
+    .docs-table th {
+      background: rgba(30, 41, 59, 0.8);
+      font-weight: 700;
+      color: #fff;
+    }
+    .docs-table tr:nth-child(even) {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .docs-toc {
+      padding: 2rem 1.25rem;
+      position: sticky;
+      top: 72px;
+      height: calc(100vh - 72px);
+      overflow-y: auto;
+    }
+    .docs-toc-title {
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+    }
+    .docs-toc-link {
+      display: block;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      padding: 0.25rem 0;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .docs-toc-link:hover { color: var(--accent-cyan); }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <header class="navbar">
+    <div class="nav-brand">
+      <span class="nav-logo-badge">CSCD608</span>
+      <div>
+        <h1 class="nav-title">System Documentation & User Manual</h1>
+        <p class="nav-subtitle">Comprehensive Technical Guide • Theory • API Reference • Deployment</p>
+      </div>
+    </div>
+    <div class="nav-links">
+      <a href="/" class="btn-secondary" style="padding: 0.4rem 0.9rem; text-decoration: none; font-size: 0.82rem;">
+        ← Back to App Dashboard
+      </a>
+      <a href="https://github.com/mhiskall282/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem" target="_blank" class="btn-primary" style="padding: 0.4rem 0.9rem; text-decoration: none; font-size: 0.82rem;">
+        GitHub Repository ↗
+      </a>
+    </div>
+  </header>
+
+  <!-- GitBook Main Layout -->
+  <div class="docs-layout">
+    
+    <!-- Left Navigation Sidebar -->
+    <aside class="docs-sidebar">
+      <div class="docs-sidebar-group">
+        <div class="docs-sidebar-title">Getting Started</div>
+        <a href="#section-overview" class="docs-nav-link active">1. Overview & Mandate</a>
+        <a href="#section-traceability" class="docs-nav-link">2. Traceability Matrix</a>
+        <a href="#section-quickstart" class="docs-nav-link">3. Quickstart & Installation</a>
+      </div>
+
+      <div class="docs-sidebar-group">
+        <div class="docs-sidebar-title">Core Vision Theory</div>
+        <a href="#section-math" class="docs-nav-link">4. Mathematical Foundations</a>
+        <a href="#section-preprocessing" class="docs-nav-link">5. Image Preprocessing</a>
+        <a href="#section-detection" class="docs-nav-link">6. Feature Detection (SIFT/ORB)</a>
+        <a href="#section-description" class="docs-nav-link">7. Feature Description</a>
+        <a href="#section-matching" class="docs-nav-link">8. Descriptor Matching</a>
+        <a href="#section-ransac" class="docs-nav-link">9. RANSAC Outlier Rejection</a>
+        <a href="#section-homography" class="docs-nav-link">10. Homography Diagnostics</a>
+        <a href="#section-warping" class="docs-nav-link">11. Warping & Canvas Geometry</a>
+        <a href="#section-stitching" class="docs-nav-link">12. Panorama Stitching & Blending</a>
+      </div>
+
+      <div class="docs-sidebar-group">
+        <div class="docs-sidebar-title">Experiments & Benchmarks</div>
+        <a href="#section-evaluation" class="docs-nav-link">13. 8-Metric Framework</a>
+        <a href="#section-experiments" class="docs-nav-link">14. 5 Benchmark Experiments</a>
+        <a href="#section-failures" class="docs-nav-link">15. Failure Diagnostics (F1-F5)</a>
+      </div>
+
+      <div class="docs-sidebar-group">
+        <div class="docs-sidebar-title">Usage & Deployment</div>
+        <a href="#section-webapp" class="docs-nav-link">16. Web Dashboard Manual</a>
+        <a href="#section-cli" class="docs-nav-link">17. CLI & Scripts Guide</a>
+        <a href="#section-deployment" class="docs-nav-link">18. Cloud Deployment (Render/Vercel)</a>
+        <a href="#section-tests" class="docs-nav-link">19. Test Suite Verification</a>
+      </div>
+    </aside>
+
+    <!-- Main Content Reader -->
+    <main class="docs-content">
+      
+      <!-- 1. Overview -->
+      <section id="section-overview">
+        <h1>Feature-Based Image Matching & Automatic Panorama Construction</h1>
+        <p style="font-size: 1.1rem; color: var(--accent-cyan); font-weight: 500;">
+          CSCD608: Advanced Computer Vision (3 Credits) — Postgraduate Examination Reference System
+        </p>
+
+        <div class="docs-callout">
+          <div class="docs-callout-title">📌 Project Mandate</div>
+          <p style="margin:0; font-size: 0.88rem;">
+            Develop a classical computer vision pipeline capable of detecting corresponding features across overlapping photographic views, estimating the 2D projective homography matrix via RANSAC, and constructing a seamless panoramic composite without relying on black-box APIs (such as <code>cv2.Stitcher_create</code>) or pretrained deep neural networks.
+          </p>
+        </div>
+
+        <p>
+          This documentation provides a comprehensive, A-to-Z technical walkthrough of the computer vision mathematics, modular source code architecture, empirical benchmark results, interactive web application, and one-click cloud deployment pipelines.
+        </p>
+      </section>
+
+      <!-- 2. Traceability Matrix -->
+      <section id="section-traceability">
+        <h2>2. Examination Requirements Traceability</h2>
+        <p>Every single task from the CSCD608 examination specification maps directly to verified Python modules:</p>
+
+        <table class="docs-table">
+          <thead>
+            <tr>
+              <th>Task ID</th>
+              <th>Examination Requirement</th>
+              <th>Source Component</th>
+              <th>Verification Artifact</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>REQ-01</strong></td><td>Multi-image scene acquisition (≥ 3 images)</td><td><code>src/preprocessing.py</code></td><td><code>data/raw/</code></td></tr>
+            <tr><td><strong>REQ-02</strong></td><td>Aspect-preserving preprocessing & validation</td><td><code>src/preprocessing.py</code></td><td><code>outputs/baseline/preprocessed_*.png</code></td></tr>
+            <tr><td><strong>REQ-03</strong></td><td>Keypoint detection (SIFT DoG & ORB FAST)</td><td><code>src/features.py</code></td><td><code>tests/test_features.py</code></td></tr>
+            <tr><td><strong>REQ-04</strong></td><td>Descriptor computation (128-float & 256-binary)</td><td><code>src/features.py</code></td><td><code>tests/test_features.py</code></td></tr>
+            <tr><td><strong>REQ-05</strong></td><td>Descriptor matching with appropriate norms</td><td><code>src/matching.py</code></td><td><code>tests/test_matching.py</code></td></tr>
+            <tr><td><strong>REQ-06</strong></td><td>Display initial feature correspondences</td><td><code>src/visualization.py</code></td><td><code>outputs/*/raw_matches_*.png</code></td></tr>
+            <tr><td><strong>REQ-07</strong></td><td>RANSAC outlier rejection (4-pt DLT consensus)</td><td><code>src/homography.py</code></td><td><code>tests/test_homography.py</code></td></tr>
+            <tr><td><strong>REQ-08</strong></td><td>3×3 Homography matrix estimation & storage</td><td><code>src/homography.py</code></td><td><code>outputs/*/homographies/</code></td></tr>
+            <tr><td><strong>REQ-09</strong></td><td>Perspective image warping & coordinate shift</td><td><code>src/warping.py</code></td><td><code>tests/test_warping.py</code></td></tr>
+            <tr><td><strong>REQ-10</strong></td><td>Multi-image panorama stitching & blending</td><td><code>src/stitching.py</code></td><td><code>outputs/*/panorama/</code></td></tr>
+            <tr><td><strong>REQ-11</strong></td><td>Compare matches Before vs. After RANSAC</td><td><code>src/visualization.py</code></td><td><code>outputs/*/before_after_*.png</code></td></tr>
+            <tr><td><strong>REQ-12A</strong></td><td>In-plane rotation stress test (0°–180°)</td><td><code>experiments/run_rotation.py</code></td><td><code>results/rotation_results.csv</code></td></tr>
+            <tr><td><strong>REQ-12B</strong></td><td>Multi-scale stress test (0.5x–2.0x)</td><td><code>experiments/run_scale.py</code></td><td><code>results/scale_results.csv</code></td></tr>
+            <tr><td><strong>REQ-12C</strong></td><td>Perspective viewpoint shear stress test</td><td><code>experiments/run_viewpoint.py</code></td><td><code>results/viewpoint_results.csv</code></td></tr>
+            <tr><td><strong>REQ-12D</strong></td><td>Photometric illumination stress test</td><td><code>experiments/run_illumination.py</code></td><td><code>results/illumination_results.csv</code></td></tr>
+            <tr><td><strong>REQ-13</strong></td><td>Stage-wise execution timing profiling</td><td><code>src/evaluation.py</code></td><td><code>results/tables/all_results.csv</code></td></tr>
+            <tr><td><strong>REQ-14</strong></td><td>Quantitative SIFT vs. ORB comparison</td><td><code>scripts/generate_report_tables.py</code></td><td><code>results/tables/comparison_table.csv</code></td></tr>
+            <tr><td><strong>REQ-15</strong></td><td>Complete demonstrable CLI, App & Colab pipeline</td><td><code>scripts/run_pipeline.py</code>, <code>app/server.py</code></td><td><code>tests/test_pipeline.py</code></td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- 3. Quickstart -->
+      <section id="section-quickstart">
+        <h2>3. Quickstart & Installation</h2>
+        <p>Follow these step-by-step commands to set up and run the system locally:</p>
+
+        <div class="code-block">
+# 1. Clone the repository
+git clone https://github.com/mhiskall282/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem.git
+cd Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem
+
+# 2. Create virtual environment
+python -m venv venv
+# On Windows:
+.\venv\Scripts\activate
+# On Linux/macOS:
+source venv/bin/activate
+
+# 3. Install all dependencies
+pip install -r requirements.txt
+
+# 4. Launch the interactive web dashboard
+python run_app.py
+# Navigate to http://127.0.0.1:5000/
+        </div>
+      </section>
+
+      <!-- 4. Mathematical Foundations -->
+      <section id="section-math">
+        <h2>4. Mathematical Foundations</h2>
+        <p>
+          A homography is a 2D projective transformation relating two photographic planes $I_1$ and $I_2$. Given corresponding points in homogeneous coordinates $\tilde{\mathbf{x}} = [x, y, 1]^T$ and $\tilde{\mathbf{x}}' = [x', y', 1]^T$:
+        </p>
+
+        <div class="code-block">
+[ x' ]     [ h11  h12  h13 ] [ x ]
+[ y' ]  ~  [ h21  h22  h23 ] [ y ]
+[ 1  ]     [ h31  h32  h33 ] [ 1 ]
+        </div>
+
+        <p>In Cartesian coordinates:</p>
+        <div class="code-block">
+x' = (h11*x + h12*y + h13) / (h31*x + h32*y + h33)
+y' = (h21*x + h22*y + h23) / (h31*x + h32*y + h33)
+        </div>
+
+        <div class="docs-callout docs-callout-emerald">
+          <div class="docs-callout-title">💡 Degrees of Freedom & Direct Linear Transformation (DLT)</div>
+          <p style="margin:0; font-size: 0.88rem;">
+            Because $H$ is defined up to scale, it has <strong>8 degrees of freedom</strong>. Each point correspondence provides 2 independent equations. Thus, a minimal sample of <strong>4 non-collinear point pairs</strong> is necessary and sufficient to solve for $H$ using Singular Value Decomposition (SVD).
+          </p>
+        </div>
+      </section>
+
+      <!-- 5. Preprocessing -->
+      <section id="section-preprocessing">
+        <h2>5. Image Preprocessing & Normalization</h2>
+        <p>
+          Module: <code>src/preprocessing.py</code>. Ensures consistent scale, single-channel representation, and validated spatial overlap:
+        </p>
+        <ul>
+          <li><strong>Aspect-Preserving Resize</strong>: Constrains maximum dimension to 1280 px to bound computational complexity while preserving geometric ratios.</li>
+          <li><strong>Grayscale Conversion</strong>: Standard ITU-R BT.601 luma conversion: $Y = 0.299 R + 0.587 G + 0.114 B$.</li>
+          <li><strong>Input Integrity Validation</strong>: Rejects corrupted files, non-3-channel matrices, and zero-byte buffers.</li>
+        </ul>
+      </section>
+
+      <!-- 6. Detection -->
+      <section id="section-detection">
+        <h2>6. Feature Detection: SIFT vs. ORB</h2>
+        <p>Module: <code>src/features.py</code>. Implements the factory pattern returning detector/descriptor instances:</p>
+        
+        <h3>SIFT (Scale-Invariant Feature Transform)</h3>
+        <p>
+          Constructs a continuous Gaussian scale space: $L(x, y, \sigma) = G(x, y, \sigma) * I(x, y)$. Difference-of-Gaussians (DoG) extrema are located across 3 scale layers per octave:
+        </p>
+        <div class="code-block">
+D(x, y, sigma) = (G(x, y, k*sigma) - G(x, y, sigma)) * I(x, y)
+        </div>
+        <p>Unstable extrema and edge responses are eliminated using the 2D Hessian matrix eigenvalue ratio $\operatorname{Tr}(H)^2 / \operatorname{Det}(H) < (r+1)^2 / r$.</p>
+
+        <h3>ORB (Oriented FAST)</h3>
+        <p>
+          Uses FAST-9 corner detection across an 8-level image pyramid with scale factor 1.2. Retains the top $N=1000$ points scored by Harris corner response.
+        </p>
+      </section>
+
+      <!-- 7. Description -->
+      <section id="section-description">
+        <h2>7. Feature Description</h2>
+        <ul>
+          <li><strong>SIFT (128-D Float32)</strong>: Computes 8-bin gradient orientation histograms over a $4\times4$ grid of spatial subregions. Normalized to unit $L_2$ norm to provide illumination invariance.</li>
+          <li><strong>ORB (256-Bit Binary)</strong>: Computes canonical orientation from intensity centroid moments $\theta = \text{atan2}(m_{01}, m_{10})$. Evaluates 256 steered pairwise intensity tests $\tau(p; \mathbf{x}_i, \mathbf{y}_i)$.</li>
+        </ul>
+      </section>
+
+      <!-- 8. Matching -->
+      <section id="section-matching">
+        <h2>8. Descriptor Matching & Verification</h2>
+        <p>Module: <code>src/matching.py</code>.</p>
+        <ul>
+          <li><strong>SIFT Matching</strong>: Euclidean distance ($L_2$) with Lowe's second-nearest-neighbor ratio test: $d_1 < 0.75 \cdot d_2$. Rejects ambiguous correspondences in repetitive textures.</li>
+          <li><strong>ORB Matching</strong>: Hamming distance via hardware bitwise XOR (`POPCNT`) with bidirectional cross-checking: $(i \to j) \land (j \to i)$.</li>
+        </ul>
+      </section>
+
+      <!-- 9. RANSAC -->
+      <section id="section-ransac">
+        <h2>9. Robust Outlier Rejection via RANSAC</h2>
+        <p>Module: <code>src/homography.py</code>. RANSAC iteratively:</p>
+        <ol>
+          <li>Randomly draws $s = 4$ point correspondences.</li>
+          <li>Solves candidate $H_{cand}$ via DLT.</li>
+          <li>Measures transfer reprojection error: $e_i = \|\mathbf{x}'_i - \text{proj}(H_{cand}\mathbf{x}_i)\|_2$.</li>
+          <li>Counts inliers where $e_i < 5.0\text{ px}$.</li>
+          <li>Re-estimates final $H$ over all consensus inliers using least-squares SVD refinement.</li>
+        </ol>
+      </section>
+
+      <!-- 10. Homography Diagnostics -->
+      <section id="section-homography">
+        <h2>10. Homography Matrix Diagnostics</h2>
+        <p>
+          The diagnostic engine <code>diagnose_homography()</code> inspects matrix properties before warping:
+        </p>
+        <ul>
+          <li><strong>Determinant Check</strong>: Ensures $\det(H) \in [10^{-6}, 10^6]$ to prevent singular projections.</li>
+          <li><strong>Condition Number</strong>: Flags ill-conditioned matrices where $\text{cond}(H) > 10^8$.</li>
+          <li><strong>Corner Bounds Sanity</strong>: Forward-projects image corners to ensure coordinates remain within reasonable canvas boundaries.</li>
+        </ul>
+      </section>
+
+      <!-- 11. Warping -->
+      <section id="section-warping">
+        <h2>11. Dynamic Canvas Geometry & Warping</h2>
+        <p>Module: <code>src/warping.py</code>. Prevents clipping negative warped coordinates:</p>
+        <div class="code-block">
+x_offset = max(0, -min(warped_corners_x))
+y_offset = max(0, -min(warped_corners_y))
+T = [ [1, 0, x_offset], [0, 1, y_offset], [0, 0, 1] ]
+H_adjusted = T * H
+        </div>
+      </section>
+
+      <!-- 12. Stitching & Blending -->
+      <section id="section-stitching">
+        <h2>12. Multi-Image Panorama Stitching & Distance Blending</h2>
+        <p>
+          Module: <code>src/stitching.py</code>. Combines multiple images into a reference coordinate frame. In overlap zones, distance-transform weighted alpha blending eliminates seam artifacts:
+        </p>
+        <div class="code-block">
+I_blend(x, y) = (D1(x, y) / (D1(x,y) + D2(x,y))) * I1(x, y) + (D2(x, y) / (D1(x,y) + D2(x,y))) * I2(x, y)
+        </div>
+      </section>
+
+      <!-- 13. Evaluation Framework -->
+      <section id="section-evaluation">
+        <h2>13. 8-Metric Evaluation Framework</h2>
+        <p>Module: <code>src/evaluation.py</code>. Computes metrics M1 through M8 across all experimental runs:</p>
+        <ul>
+          <li><strong>M1: Keypoint Count</strong>: Total detected interest points per view.</li>
+          <li><strong>M2: Match Count</strong>: Initial filtered correspondences.</li>
+          <li><strong>M3: RANSAC Inlier Count</strong>: Number of geometrically verified correspondences.</li>
+          <li><strong>M4: Inlier Ratio</strong>: Ratio of inliers to good matches ($N_{inliers} / N_{matches}$).</li>
+          <li><strong>M5: Execution Timing</strong>: Stage-wise profiling (detection, matching, RANSAC, total).</li>
+          <li><strong>M6: Panorama Quality</strong>: Non-black pixel coverage ratio and Laplacian gradient sharpness.</li>
+          <li><strong>M7: Mean Reprojection Error</strong>: Average pixel distance of inlier projections.</li>
+          <li><strong>M8: Homography Success</strong>: Boolean status with failure root cause logging.</li>
+        </ul>
+      </section>
+
+      <!-- 14. Experiments -->
+      <section id="section-experiments">
+        <h2>14. 5 Benchmark Research Experiments</h2>
+        <p>
+          Master Runner: <code>python experiments/run_all.py</code>. Evaluates SIFT vs. ORB across 66 experimental conditions:
+        </p>
+        
+        <table class="docs-table">
+          <thead>
+            <tr>
+              <th>Experiment</th>
+              <th>SIFT Inlier Ratio</th>
+              <th>ORB Inlier Ratio</th>
+              <th>SIFT Reproj Error</th>
+              <th>ORB Reproj Error</th>
+              <th>SIFT Latency</th>
+              <th>ORB Latency</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Baseline (3 Images)</strong></td><td><strong>59.64%</strong></td><td>37.74%</td><td><strong>0.14 px</strong></td><td>0.93 px</td><td>1.82 s</td><td>2.06 s</td></tr>
+            <tr><td><strong>Rotation (0°–180°)</strong></td><td><strong>94.57%</strong></td><td>91.74%</td><td><strong>0.17 px</strong></td><td>1.15 px</td><td>2.24 s</td><td><strong>1.87 s</strong></td></tr>
+            <tr><td><strong>Scale (0.5x–2.0x)</strong></td><td>96.24%</td><td><strong>97.23%</strong></td><td><strong>0.18 px</strong></td><td>0.23 px</td><td>2.52 s</td><td><strong>2.40 s</strong></td></tr>
+            <tr><td><strong>Viewpoint Shear</strong></td><td><strong>90.55%</strong></td><td>84.87%</td><td><strong>0.28 px</strong></td><td>0.97 px</td><td>4.90 s</td><td><strong>4.46 s</strong></td></tr>
+            <tr><td><strong>Illumination (Δβ, α)</strong></td><td><strong>91.50%</strong></td><td>87.43%</td><td><strong>0.27 px</strong></td><td>0.38 px</td><td>4.58 s</td><td><strong>4.36 s</strong></td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- 15. Failures -->
+      <section id="section-failures">
+        <h2>15. Failure Diagnostics Taxonomy (F1–F5)</h2>
+        <p>Proactive exception mitigation prevents pipeline crashes:</p>
+        <ul>
+          <li><strong>F1: Insufficient Keypoints ($N < 4$)</strong>: Textureless scene or excessive blur. Aborts matching gracefully.</li>
+          <li><strong>F2: Low Overlap ($N_{matches} < 4$)</strong>: Overlap $< 15\%$. Prevents rank-deficient DLT solver.</li>
+          <li><strong>F3: Outlier Dominance ($> 95\%$)</strong>: RANSAC fails to find consensus. Flags pair in failure log.</li>
+          <li><strong>F4: Degenerate Collinear Homography</strong>: Keypoints lie on a 1D line. Determinant test flags degeneracy.</li>
+          <li><strong>F5: 3D Depth Parallax</strong>: Camera translation in non-planar scenes causes local ghosting.</li>
+        </ul>
+      </section>
+
+      <!-- 16. Web App -->
+      <section id="section-webapp">
+        <h2>16. Interactive Web Dashboard Manual</h2>
+        <p>
+          The web application in <code>app/</code> provides an interface for real-time testing:
+        </p>
+        <ul>
+          <li><strong>Preset Scenes</strong>: 1-click loading of the standard 3-image verification scene.</li>
+          <li><strong>Custom Upload</strong>: Drag-and-drop 2 to 6 photos.</li>
+          <li><strong>Dual Benchmark Mode</strong>: Runs SIFT and ORB simultaneously and renders a side-by-side comparison.</li>
+          <li><strong>Stress Test Playground</strong>: Live sliders for rotation, scale, viewpoint, and illumination.</li>
+        </ul>
+      </section>
+
+      <!-- 17. CLI -->
+      <section id="section-cli">
+        <h2>17. CLI & Scripts Guide</h2>
+        <div class="code-block">
+# Run single SIFT pipeline
+python scripts/run_pipeline.py --algorithm sift --data data/raw --output outputs/sift
+
+# Run single ORB pipeline
+python scripts/run_pipeline.py --algorithm orb --data data/raw --output outputs/orb
+
+# Run full research benchmark suite
+python experiments/run_all.py
+
+# Aggregate results and generate plots
+python scripts/generate_report_tables.py
+        </div>
+      </section>
+
+      <!-- 18. Cloud Deployment -->
+      <section id="section-deployment">
+        <h2>18. Cloud Deployment Guide</h2>
+        
+        <h3>Deploy to Render.com (Recommended)</h3>
+        <p>
+          The repository includes a <code>render.yaml</code> blueprint. In Render Dashboard, click <strong>New → Blueprint</strong> and connect your GitHub repository.
+        </p>
+
+        <h3>Deploy to Vercel</h3>
+        <p>
+          Import the repository in Vercel. The included <code>vercel.json</code> routes all requests through the serverless entrypoint <code>api/index.py</code>.
+        </p>
+
+        <h3>Deploy with Docker</h3>
+        <div class="code-block">
+docker build -t panorama-app .
+docker run -p 5000:5000 panorama-app
+        </div>
+      </section>
+
+      <!-- 19. Tests -->
+      <section id="section-tests">
+        <h2>19. Test Suite Verification</h2>
+        <p>Execute the pytest suite covering 31 test cases:</p>
+        <div class="code-block">
+pytest tests/ -v
+# 31 passed in 1.40s (100% passing)
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Right Table of Contents -->
+    <aside class="docs-toc">
+      <div class="docs-toc-title">On This Page</div>
+      <a href="#section-overview" class="docs-toc-link">1. Overview & Mandate</a>
+      <a href="#section-traceability" class="docs-toc-link">2. Traceability Matrix</a>
+      <a href="#section-quickstart" class="docs-toc-link">3. Quickstart</a>
+      <a href="#section-math" class="docs-toc-link">4. Mathematical Foundations</a>
+      <a href="#section-detection" class="docs-toc-link">6. Feature Detection</a>
+      <a href="#section-matching" class="docs-toc-link">8. Feature Matching</a>
+      <a href="#section-ransac" class="docs-toc-link">9. RANSAC Consensus</a>
+      <a href="#section-warping" class="docs-toc-link">11. Warping & Canvas</a>
+      <a href="#section-stitching" class="docs-toc-link">12. Panorama Stitching</a>
+      <a href="#section-experiments" class="docs-toc-link">14. Benchmark Results</a>
+      <a href="#section-webapp" class="docs-toc-link">16. Web App Manual</a>
+      <a href="#section-deployment" class="docs-toc-link">18. Cloud Deployment</a>
+      <a href="#section-tests" class="docs-toc-link">19. Test Suite</a>
+    </aside>
+
+  </div>
+
+  <script>
+    // Smooth scroll and active link highlight
+    document.querySelectorAll('.docs-nav-link, .docs-toc-link').forEach(link => {
+      link.addEventListener('click', e => {
+        const targetId = link.getAttribute('href');
+        if (targetId.startsWith('#')) {
+          e.preventDefault();
+          const target = document.querySelector(targetId);
+          if (target) {
+            target.scrollIntoView({ behavior: 'smooth' });
+            document.querySelectorAll('.docs-nav-link').forEach(l => l.classList.remove('active'));
+            link.classList.add('active');
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>
