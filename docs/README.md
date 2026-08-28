@@ -1,36 +1,50 @@
 # CSCD608: Advanced Computer Vision — Technical Documentation & User Manual
 
-Welcome to the comprehensive technical documentation for the **Feature-Based Image Matching and Automatic Panorama Construction System** developed for the CSCD608 examination.
+Welcome to the comprehensive technical documentation for the **Feature-Based Image Matching and Automatic Panorama Construction System** developed for the CSCD608 postgraduate examination.
 
 ---
 
 ## 📑 Table of Contents
 
-1. [System Overview & Examination Scope](#1-system-overview--examination-scope)
+### Part I: Getting Started
+1. [Project Mandate & Scope](#1-project-mandate--scope)
 2. [Examination Requirements Traceability Matrix](#2-examination-requirements-traceability-matrix)
-3. [Mathematical Foundations & Projective Geometry](#3-mathematical-foundations--projective-geometry)
-4. [Input Image Acquisition & Preprocessing Protocol](#4-input-image-acquisition--preprocessing-protocol)
-5. [Feature Detection: SIFT (DoG) vs. ORB (FAST)](#5-feature-detection-sift-dog-vs-orb-fast)
-6. [Feature Description: Gradient Histograms vs. Steered rBRIEF](#6-feature-description-gradient-histograms-vs-steered-rbrief)
-7. [Descriptor Matching & Verification](#7-descriptor-matching--verification)
-8. [Robust Geometric Estimation via RANSAC](#8-robust-geometric-estimation-via-ransac)
-9. [Homography Matrix Diagnostics & Degeneracy Verification](#9-homography-matrix-diagnostics--degeneracy-verification)
-10. [Dynamic Canvas Geometry & Perspective Warping](#10-dynamic-canvas-geometry--perspective-warping)
-11. [Multi-Image Stitching & Distance-Weighted Alpha Blending](#11-multi-image-stitching--distance-weighted-alpha-blending)
-12. [Quantitative 8-Metric Evaluation Framework](#12-quantitative-8-metric-evaluation-framework)
-13. [Empirical Research Benchmark Results](#13-empirical-research-benchmark-results)
-14. [Before vs. After RANSAC In-Depth Analysis](#14-before-vs-after-ransac-in-depth-analysis)
-15. [Failure Diagnostics & Edge Case Handling (F1–F5)](#15-failure-diagnostics--edge-case-handling-f1f5)
-16. [User Manual: Interactive Web Dashboard](#16-user-manual-interactive-web-dashboard)
-17. [CLI Tools & Automated Experiment Runners](#17-cli-tools--automated-experiment-runners)
-18. [Cloud Deployment (Render, Vercel, Docker, Hugging Face)](#18-cloud-deployment-render-vercel-docker-hugging-face)
-19. [Pytest Test Suite & Validation Report](#19-pytest-test-suite--validation-report)
-20. [Academic Integrity Notice & References](#20-academic-integrity-notice--references)
+3. [Installation & Quickstart Guide](#3-installation--quickstart-guide)
+
+### Part II: Computer Vision Mathematics & Pipeline
+4. [Projective Geometry & 8-DOF Homography](#4-projective-geometry--8-dof-homography)
+5. [Image Preprocessing & Normalization Protocol](#5-image-preprocessing--normalization-protocol)
+6. [Feature Detection: SIFT (DoG) vs. ORB (FAST)](#6-feature-detection-sift-dog-vs-orb-fast)
+7. [Feature Description: Gradient Histograms vs. Steered rBRIEF](#7-feature-description-gradient-histograms-vs-steered-rbrief)
+8. [Descriptor Matching & Lowe's Ratio Test](#8-descriptor-matching--lowes-ratio-test)
+9. [Robust Geometric Estimation via RANSAC](#9-robust-geometric-estimation-via-ransac)
+10. [Homography Matrix Diagnostics & Degeneracy Checks](#10-homography-matrix-diagnostics--degeneracy-checks)
+11. [Dynamic Canvas Geometry & Perspective Warping](#11-dynamic-canvas-geometry--perspective-warping)
+12. [Multi-Image Stitching & Distance-Weighted Alpha Blending](#12-multi-image-stitching--distance-weighted-alpha-blending)
+
+### Part III: Empirical Research & Benchmarks
+13. [Quantitative 8-Metric Evaluation Framework](#13-quantitative-8-metric-evaluation-framework)
+14. [5 Research Benchmark Experiments & Comparative Analysis](#14-5-research-benchmark-experiments--comparative-analysis)
+15. [Before vs. After RANSAC In-Depth Analysis](#15-before-vs-after-ransac-in-depth-analysis)
+
+### Part IV: Diagnostics & Recovery
+16. [Failure Diagnostics Taxonomy (F1–F5)](#16-failure-diagnostics-taxonomy-f1f5)
+
+### Part V: Application Interfaces & User Manual
+17. [Interactive Web Dashboard Manual](#17-interactive-web-dashboard-manual)
+18. [CLI Utilities & Automated Benchmark Runners](#18-cli-utilities--automated-benchmark-runners)
+19. [Google Colab Integration Guide](#19-google-colab-integration-guide)
+
+### Part VI: Production Cloud Deployment & Verification
+20. [Cloud Deployment Guide (Render, Vercel, Docker)](#20-cloud-deployment-guide-render-vercel-docker)
+21. [Pytest Test Suite & Validation Report](#21-pytest-test-suite--validation-report)
+22. [Academic References](#22-academic-references)
 
 ---
 
-## 1. System Overview & Examination Scope
+## Part I: Getting Started
 
+### 1. Project Mandate & Scope
 * **Degree:** MPhil / MSc Computer Science
 * **Course:** CSCD608: Advanced Computer Vision (3 Credits)
 * **Semester:** Second Semester Examinations 2025/2026
@@ -38,9 +52,7 @@ Welcome to the comprehensive technical documentation for the **Feature-Based Ima
 
 The goal of this system is to identify corresponding visual regions across two or more overlapping planar or perspective images and automatically composite them into a seamless panorama. The pipeline is engineered entirely using classical computer vision primitives without black-box stitching functions (`cv2.Stitcher_create`) or deep learning models.
 
----
-
-## 2. Examination Requirements Traceability Matrix
+### 2. Examination Requirements Traceability Matrix
 
 | Task ID | Examination Specification | Implementation Module | Automated Test / Artifact | Verification Status |
 |---|---|---|---|:---:|
@@ -63,10 +75,30 @@ The goal of this system is to identify corresponding visual regions across two o
 | **REQ-14** | Quantitative evaluation of SIFT vs. ORB | `scripts/generate_report_tables.py` | `results/tables/comparison_table.csv` | **Verified** |
 | **REQ-15** | Complete demonstrable CLI, App & Colab pipeline | `scripts/run_pipeline.py`, `app/server.py` | `tests/test_pipeline.py` | **Verified** |
 
+### 3. Installation & Quickstart Guide
+
+```bash
+# 1. Clone repository
+git clone https://github.com/mhiskall282/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem.git
+cd Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem
+
+# 2. Create and activate virtual environment
+python -m venv venv
+# Windows: .\venv\Scripts\activate
+# Linux/macOS: source venv/bin/activate
+
+# 3. Install requirements
+pip install -r requirements.txt
+
+# 4. Launch interactive dashboard
+python run_app.py
+```
+
 ---
 
-## 3. Mathematical Foundations & Projective Geometry
+## Part II: Computer Vision Mathematics & Pipeline
 
+### 4. Projective Geometry & 8-DOF Homography
 A homography $H \in \mathbb{R}^{3\times3}$ maps points between two projective image planes:
 
 $$\begin{bmatrix} x' \\ y' \\ 1 \end{bmatrix} \sim \begin{bmatrix} h_{11} & h_{12} & h_{13} \\ h_{21} & h_{22} & h_{23} \\ h_{31} & h_{32} & h_{33} \end{bmatrix} \begin{bmatrix} x \\ y \\ 1 \end{bmatrix}$$
@@ -77,73 +109,58 @@ $$x' = \frac{h_{11}x + h_{12}y + h_{13}}{h_{31}x + h_{32}y + h_{33}}, \quad y' =
 
 Because $H$ is defined up to scale, it has **8 degrees of freedom (DOF)**. The Direct Linear Transformation (DLT) sets up the algebraic constraint $A\mathbf{h} = \mathbf{0}$, which is solved via SVD over consensus inliers.
 
----
+### 5. Image Preprocessing & Normalization Protocol
+1. Aspect-preserving resizing (maximum dimension constrained to 1280 px).
+2. Grayscale conversion via ITU-R BT.601 standard ($Y = 0.299R + 0.587G + 0.114B$).
+3. Image buffer integrity validation.
 
-## 4. Input Image Acquisition & Preprocessing Protocol
-
-- **Camera Motion**: Pure camera rotation about its optical center or viewing a planar scene.
-- **Overlap**: Minimum 30%–50% horizontal overlap between adjacent frames.
-- **Preprocessing Pipeline**:
-  1. Aspect-preserving resizing (maximum dimension constrained to 1280 px).
-  2. Grayscale conversion via ITU-R BT.601 standard ($Y = 0.299R + 0.587G + 0.114B$).
-  3. Image buffer integrity validation (ensuring valid non-empty arrays).
-
----
-
-## 5. Feature Detection: SIFT (DoG) vs. ORB (FAST)
-
+### 6. Feature Detection: SIFT (DoG) vs. ORB (FAST)
 * **SIFT**: Difference-of-Gaussians (DoG) extrema detection across 3 octaves with 3 scale layers per octave. Sub-pixel quadratic Taylor expansion refinement eliminates low-contrast points and unstable edge responses.
 * **ORB**: FAST-9 corner detector across an 8-level image pyramid. Harris corner scores rank and retain the top $N=1000$ points.
 
----
-
-## 6. Feature Description: Gradient Histograms vs. Steered rBRIEF
-
+### 7. Feature Description: Gradient Histograms vs. Steered rBRIEF
 * **SIFT (128-D Float32)**: 8-bin gradient orientation histograms computed over a $4\times4$ grid of spatial subregions around the keypoint, normalized to unit $L_2$ length.
 * **ORB (256-Bit Binary)**: Orientation angle $\theta = \text{atan2}(m_{01}, m_{10})$ computed from image moments $m_{pq}$. Evaluates 256 steered pairwise binary intensity tests $\tau(p; \mathbf{x}_i, \mathbf{y}_i)$.
 
----
-
-## 7. Descriptor Matching & Verification
-
+### 8. Descriptor Matching & Lowe's Ratio Test
 * **SIFT**: Euclidean ($L_2$) distance with Lowe's ratio test ($d_1 < 0.75 \cdot d_2$).
 * **ORB**: Hamming distance with bidirectional cross-check matching.
 
----
-
-## 8. Robust Geometric Estimation via RANSAC
-
+### 9. Robust Geometric Estimation via RANSAC
 1. Randomly sample 4 point pairs.
 2. Solve candidate $H_{cand}$ via DLT.
 3. Compute transfer reprojection error: $e_i = \|\mathbf{x}'_i - \text{proj}(H_{cand}\mathbf{x}_i)\|_2$.
 4. Classify points as inliers if $e_i < 5.0\text{ px}$.
-5. Re-estimate $H$ on all inliers via SVD.
+5. Re-estimate $H$ on all inliers via SVD least-squares refinement.
 
----
+### 10. Homography Matrix Diagnostics & Degeneracy Checks
+* **Determinant Check**: $\det(H) \in [10^{-6}, 10^6]$.
+* **Condition Number**: $\text{cond}(H) < 10^8$.
+* **Corner Bounds Sanity**: Verifies warped corners remain within canvas boundaries.
 
-## 9. Dynamic Canvas Geometry & Warping
-
-To prevent clipping negative warped coordinates:
-
+### 11. Dynamic Canvas Geometry & Perspective Warping
 $$x_{offset} = \max(0, -\min(x_{warped})), \quad y_{offset} = \max(0, -\min(y_{warped}))$$
-
 $$T = \begin{bmatrix} 1 & 0 & x_{offset} \\ 0 & 1 & y_{offset} \\ 0 & 0 & 1 \end{bmatrix}, \quad H_{adjusted} = T \cdot H$$
 
-Images are warped using inverse mapping with bilinear interpolation (`cv2.INTER_LINEAR`).
-
----
-
-## 10. Multi-Image Stitching & Distance Alpha Blending
-
-In overlap regions, pixel values are blended using Euclidean distance transforms to eliminate seam artifacts:
-
+### 12. Multi-Image Stitching & Distance-Weighted Alpha Blending
+In overlap regions, pixel values are blended using Euclidean distance transforms:
 $$I_{blend}(x, y) = \frac{D_1(x, y)}{D_1(x, y) + D_2(x, y)} I_1(x, y) + \frac{D_2(x, y)}{D_1(x, y) + D_2(x, y)} I_2(x, y)$$
 
 ---
 
-## 11. Empirical Research Benchmark Results
+## Part III: Empirical Research & Benchmarks
 
-Measured data from [`results/tables/comparison_table.csv`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/results/tables/comparison_table.csv):
+### 13. Quantitative 8-Metric Evaluation Framework
+* **M1: Keypoint Count**: Total detected interest points per view.
+* **M2: Match Count**: Initial filtered correspondences.
+* **M3: RANSAC Inlier Count**: Number of geometrically verified correspondences.
+* **M4: Inlier Ratio**: Ratio of inliers to good matches ($N_{inliers} / N_{matches}$).
+* **M5: Execution Timing**: Stage-wise profiling (detection, matching, RANSAC, total).
+* **M6: Panorama Quality**: Non-black pixel coverage ratio and Laplacian gradient sharpness.
+* **M7: Mean Reprojection Error**: Average pixel distance of inlier projections.
+* **M8: Homography Success**: Boolean status with failure root cause logging.
+
+### 14. 5 Research Benchmark Experiments & Comparative Analysis
 
 | Benchmark Experiment | SIFT Inlier Ratio | ORB Inlier Ratio | SIFT Reproj Error | ORB Reproj Error | SIFT Latency | ORB Latency |
 |---|---|---|---|---|---|---|
@@ -153,10 +170,14 @@ Measured data from [`results/tables/comparison_table.csv`](file:///c:/Users/user
 | **Viewpoint Shear** | **90.55%** | 84.87% | **0.28 px** | 0.97 px | 4.90 s | **4.46 s** |
 | **Illumination ($\Delta\beta, \alpha$)** | **91.50%** | 87.43% | **0.27 px** | 0.38 px | 4.58 s | **4.36 s** |
 
+### 15. Before vs. After RANSAC In-Depth Analysis
+Before RANSAC, raw matches contain false correspondences. RANSAC eliminates outliers and ensures only valid geometric consensus pairs determine the projective warp.
+
 ---
 
-## 12. Failure Diagnostics Taxonomy (F1–F5)
+## Part IV: Diagnostics & Recovery
 
+### 16. Failure Diagnostics Taxonomy (F1–F5)
 * **F1: Low Keypoints ($N < 4$)**: Textureless scenes or blur. Aborts estimation.
 * **F2: Low Overlap ($N_{matches} < 4$)**: Overlap $< 15\%$. Prevents rank-deficient DLT solver.
 * **F3: Outlier Dominance ($> 95\%$)**: RANSAC fails to find consensus. Flags failure in log.
@@ -165,53 +186,43 @@ Measured data from [`results/tables/comparison_table.csv`](file:///c:/Users/user
 
 ---
 
-## 13. Interactive Web Dashboard User Guide
+## Part V: Application Interfaces & User Manual
 
+### 17. Interactive Web Dashboard Manual
+* **Preset Scenes**: 1-click sample scene loading.
+* **Custom Upload**: Drag-and-drop 2 to 6 photos.
+* **Dual Benchmark Mode**: Runs SIFT and ORB side-by-side.
+* **Live Stress Playground**: Interactive sliders for rotation, scale, shear, and illumination.
+
+### 18. CLI Utilities & Automated Benchmark Runners
 ```bash
-# Launch web dashboard
-python run_app.py
-```
-Open **[http://127.0.0.1:5000/](http://127.0.0.1:5000/)** in any browser.
+# Run SIFT CLI pipeline
+python scripts/run_pipeline.py --algorithm sift --data data/raw --output outputs/sift
 
-Features:
-- 1-click sample scene loading.
-- Custom image uploader for 2 to 6 photos.
-- Interactive SIFT, ORB, and Dual Benchmark modes.
-- Sliders for Lowe's ratio test threshold and RANSAC threshold.
-- Interactive step-by-step visualizers and live transformation stress test simulator.
-- Direct high-res panorama download.
+# Run all 5 research experiments
+python experiments/run_all.py
+```
+
+### 19. Google Colab Integration Guide
+Open `notebooks/analysis.ipynb` in Google Colab to run all pipeline stages interactively.
 
 ---
 
-## 14. Cloud Deployment Guide
+## Part VI: Production Cloud Deployment & Verification
 
-### Deploy on Render.com (Recommended)
-1. In Render Dashboard, click **New → Blueprint**.
-2. Connect this repository. Render automatically reads `render.yaml`.
+### 20. Cloud Deployment Guide (Render, Vercel, Docker)
+* **Render**: Detects `render.yaml` and deploys automatically.
+* **Vercel**: Routes through serverless entrypoint `api/index.py`.
+* **Docker**: `docker build -t panorama-app . && docker run -p 5000:5000 panorama-app`.
 
-### Deploy on Vercel
-1. Import repository into Vercel. `vercel.json` and `api/index.py` handle serverless routing.
-
-### Deploy with Docker
-```bash
-docker build -t panorama-app .
-docker run -p 5000:5000 panorama-app
-```
-
----
-
-## 15. Unit & Integration Test Suite
-
+### 21. Pytest Test Suite & Validation Report
 ```bash
 pytest tests/ -v
 # 31 passed in 1.40s (100% passing)
 ```
 
----
-
-## 16. Academic References
-
-1. **Lowe, D. G. (2004).** Distinctive image features from scale-invariant keypoints. *International Journal of Computer Vision*, 60(2), 91–110.
+### 22. Academic References
+1. **Lowe, D. G. (2004).** Distinctive image features from scale-invariant keypoints. *IJCV*, 60(2), 91–110.
 2. **Rublee, E., et al. (2011).** ORB: An efficient alternative to SIFT or SURF. In *IEEE ICCV* (pp. 2564–2571).
 3. **Fischler, M. A., & Bolles, R. C. (1981).** Random sample consensus: a paradigm for model fitting. *CACM*, 24(6), 381–395.
 4. **Brown, M., & Lowe, D. G. (2007).** Automatic panoramic image stitching using invariant features. *IJCV*, 74(1), 59–73.

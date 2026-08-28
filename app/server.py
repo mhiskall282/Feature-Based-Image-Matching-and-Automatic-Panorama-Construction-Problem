@@ -22,7 +22,7 @@ from pathlib import Path
 
 import cv2
 import numpy as np
-from flask import Flask, jsonify, render_template, request, send_file
+from flask import Flask, jsonify, render_template, request, send_file, send_from_directory
 
 # Add parent directory to path so src modules are accessible
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -95,6 +95,20 @@ def index():
 def documentation():
     """Render the in-depth GitBook-style documentation portal."""
     return render_template("docs.html")
+
+
+@app.route("/outputs/<path:filename>")
+def serve_outputs(filename):
+    """Serve visual outputs, panoramas, and comparison artifacts."""
+    outputs_dir = Path(__file__).parent.parent / "outputs"
+    return send_from_directory(outputs_dir, filename)
+
+
+@app.route("/results/<path:filename>")
+def serve_results(filename):
+    """Serve benchmark plots and CSV results."""
+    results_dir = Path(__file__).parent.parent / "results"
+    return send_from_directory(results_dir, filename)
 
 
 @app.route("/api/presets", methods=["GET"])
