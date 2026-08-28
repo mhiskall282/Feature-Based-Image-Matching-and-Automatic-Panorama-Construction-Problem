@@ -1,0 +1,29 @@
+timestamp,experiment,algorithm,image_pair,failure_stage,failure_reason
+2026-08-28T02:31:37.133636+00:00,test,SIFT,t1-t2,ransac,findHomography_returned_none
+2026-08-28T02:31:37.513163+00:00,test,SIFT,dark-dark,feature_detection,"too_few_keypoints: img1=0, img2=0"
+2026-08-28T02:31:37.626495+00:00,test,SIFT,ratio_test,ransac,findHomography_returned_none
+2026-08-28T02:32:14.633338+00:00,test,SIFT,t1-t2,ransac,findHomography_returned_none
+2026-08-28T02:32:15.238304+00:00,test,SIFT,dark-dark,feature_detection,"too_few_keypoints: img1=0, img2=0"
+2026-08-28T02:32:15.370726+00:00,test,SIFT,ratio_test,ransac,findHomography_returned_none
+2026-08-28T02:32:45.028890+00:00,test,SIFT,t1-t2,ransac,findHomography_returned_none
+2026-08-28T02:32:45.249467+00:00,test,SIFT,dark-dark,feature_detection,"too_few_keypoints: img1=0, img2=0"
+2026-08-28T02:32:45.338725+00:00,test,SIFT,ratio_test,ransac,findHomography_returned_none
+2026-08-28T02:32:56.170269+00:00,test,SIFT,t1-t2,ransac,findHomography_returned_none
+2026-08-28T02:32:56.347263+00:00,test,SIFT,dark-dark,feature_detection,"too_few_keypoints: img1=0, img2=0"
+2026-08-28T02:32:56.436614+00:00,test,SIFT,ratio_test,ransac,findHomography_returned_none
+2026-08-28T02:33:26.771508+00:00,baseline,SIFT,img1-img2,homography,degenerate_homography: corners map outside reasonable bounds
+2026-08-28T02:33:30.107200+00:00,baseline,SIFT,img2-img3,homography,degenerate_homography: corners map outside reasonable bounds
+2026-08-28T02:33:39.501212+00:00,baseline,ORB,img2-img3,homography,degenerate_homography: corners map outside reasonable bounds
+2026-08-28T02:38:04.344378+00:00,baseline,,img1-img2,,,,,,,,,,,,,,,,degenerate_homography: corners map outside reasonable bounds,,,,,,,,,,,,,,,
+2026-08-28T02:38:07.794802+00:00,baseline,,img2-img3,,,,,,,,,,,,,,,,degenerate_homography: corners map outside reasonable bounds,,,,,,,,,,,,,,,
+2026-08-28T02:38:16.848427+00:00,baseline,,img2-img3,,,,,,,,,,,,,,,,degenerate_homography: corners map outside reasonable bounds,,,,,,,,,,,,,,,
+2026-08-28T02:42:12.779442+00:00,pipeline_run,,img1-img2,,,,,,,,,,,,,,,,degenerate_homography: corners map outside reasonable bounds,,,,,,,,,,,,,,,
+2026-08-28T02:43:33.465865+00:00,test,,t1-t2,,,,,,,,,,,,,,,,findHomography_returned_none,,,,,,,,,,,,,,,
+2026-08-28T02:43:33.639801+00:00,test,,dark-dark,,,,,,,,,,,,,,,,"too_few_keypoints: img1=0, img2=0",,,,,,,,,,,,,,,
+2026-08-28T02:43:33.719253+00:00,test,,ratio_test,,,,,,,,,,,,,,,,findHomography_returned_none,,,,,,,,,,,,,,,
+2026-08-28T02:44:46.501005+00:00,test,,t1-t2,,,,,,,,,,,,,,,,findHomography_returned_none,,,,,,,,,,,,,,,
+2026-08-28T02:44:46.686334+00:00,test,,dark-dark,,,,,,,,,,,,,,,,"too_few_keypoints: img1=0, img2=0",,,,,,,,,,,,,,,
+2026-08-28T02:44:46.771479+00:00,test,,ratio_test,,,,,,,,,,,,,,,,findHomography_returned_none,,,,,,,,,,,,,,,
+2026-08-28T02:46:12.526687+00:00,test,,t1-t2,,,,,,,,,,,,,,,,findHomography_returned_none,,,,,,,,,,,,,,,
+2026-08-28T02:46:12.686553+00:00,test,,dark-dark,,,,,,,,,,,,,,,,"too_few_keypoints: img1=0, img2=0",,,,,,,,,,,,,,,
+2026-08-28T02:46:12.779104+00:00,test,,ratio_test,,,,,,,,,,,,,,,,findHomography_returned_none,,,,,,,,,,,,,,,
