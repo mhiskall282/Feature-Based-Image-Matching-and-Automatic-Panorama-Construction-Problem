@@ -1,0 +1,10 @@
+# Homography Matrix H (3x3)
+# Maps points from image 1 -> image 2 coordinate frame
+# x' ~ H*x  (homogeneous coordinates)
+# method: ORB
+# pair: ref-viewpoint_extreme
+# inliers: 365
+#
+0.5710090323 -0.1340107910 80.1374415170
+-0.1068018042 0.5698710801 80.2559836271
+-0.0003205399 -0.0003163211 1.0000000000

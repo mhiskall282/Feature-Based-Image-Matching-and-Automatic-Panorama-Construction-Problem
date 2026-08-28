@@ -1,0 +1,9 @@
+timestamp,experiment,method,image_pair,condition,num_kp_img1,num_kp_img2,desc_dim_img1,desc_dtype,num_raw_matches,num_good_matches,num_ransac_inliers,num_ransac_outliers,inlier_ratio,time_feat_s,time_match_s,time_ransac_s,reprojection_error_px,homography_success,failure_reason,panorama_w,panorama_h,pano_valid_ratio,pano_lap_variance,time_total_s,ratio_threshold,ransac_threshold,rotation_angle_deg,scale_factor,viewpoint_level,viewpoint_offset_px,illumination_tag,brightness_delta,contrast_factor,illumination_type
+2026-08-28T02:38:04.344378+00:00,baseline,SIFT,img1-img2,standard,1253,1099,128,float32,1253,309,178,131,0.5761,0.2175,0.0112,0.0018,0.165,True,,0.0,0.0,,,3.2,0.75,5.0,,,,,,,,
+2026-08-28T02:38:07.796804+00:00,baseline,SIFT,img2-img3,standard,1099,1141,128,float32,1099,371,224,147,0.6038,0.1924,0.0101,0.0017,0.132,True,,0.0,0.0,,,3.4466,0.75,5.0,,,,,,,,
+2026-08-28T02:38:08.131567+00:00,baseline,SIFT,img1-img2,multi_image,1253,1099,128,float32,1253,309,178,131,0.5761,0.31,0.0108,0.0019,0.165,True,,,,,,0.3227317999699153,,,,,,,,,,
+2026-08-28T02:38:08.255773+00:00,baseline,SIFT,img3-img2,multi_image,1141,1099,128,float32,1141,343,216,127,0.6297,0.296,0.0128,0.0022,0.14,True,,,,,,0.311008499993477,,,,,,,,,,
+2026-08-28T02:38:13.884491+00:00,baseline,ORB,img1-img2,standard,1000,1002,32,uint8,279,279,46,233,0.1649,0.1846,0.0129,0.0643,1.611,True,,817.0,755.0,0.7985,1943.57,5.1257,0.75,5.0,,,,,,,,
+2026-08-28T02:38:16.848427+00:00,baseline,ORB,img2-img3,standard,1002,1000,32,uint8,395,395,233,162,0.5899,0.0305,0.0108,0.0021,0.932,True,,0.0,0.0,,,2.9656,0.75,5.0,,,,,,,,
+2026-08-28T02:38:16.964501+00:00,baseline,ORB,img1-img2,multi_image,1000,1002,32,uint8,279,279,46,233,0.1649,0.0299,0.0134,0.0709,1.611,True,,,,,,0.1141473000170663,,,,,,,,,,
+2026-08-28T02:38:17.008948+00:00,baseline,ORB,img3-img2,multi_image,1000,1002,32,uint8,395,395,233,162,0.5899,0.0262,0.0179,0.0022,0.941,True,,,,,,0.04630590003216639,,,,,,,,,,

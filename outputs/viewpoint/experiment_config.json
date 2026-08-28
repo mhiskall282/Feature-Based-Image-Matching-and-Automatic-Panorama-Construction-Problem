@@ -1,0 +1,27 @@
+{
+  "experiment": "viewpoint",
+  "levels": [
+    [
+      "mild",
+      15
+    ],
+    [
+      "moderate",
+      40
+    ],
+    [
+      "extreme",
+      80
+    ]
+  ],
+  "methods": [
+    "SIFT",
+    "ORB"
+  ],
+  "random_seed": 42,
+  "python": "3.12.6 (tags/v3.12.6:a4a2d2b, Sep  6 2024, 20:11:23) [MSC v.1940 64 bit (AMD64)]",
+  "opencv": "4.12.0",
+  "numpy": "2.5.1",
+  "matplotlib": "3.11.0",
+  "skimage": "not installed"
+}

@@ -1,0 +1,10 @@
+# Homography Matrix H (3x3)
+# Maps points from image 1 -> image 2 coordinate frame
+# x' ~ H*x  (homogeneous coordinates)
+# method: ORB
+# pair: ref-scale1p0
+# inliers: 998
+#
+1.0000000000 -0.0000000000 0.0000000000
+-0.0000000000 1.0000000000 0.0000000000
+-0.0000000000 -0.0000000000 1.0000000000

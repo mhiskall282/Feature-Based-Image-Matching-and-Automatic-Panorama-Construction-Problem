@@ -1,0 +1,10 @@
+# Homography Matrix H (3x3)
+# Maps points from image 1 -> image 2 coordinate frame
+# x' ~ H*x  (homogeneous coordinates)
+# method: SIFT
+# pair: ref-viewpoint_extreme
+# inliers: 540
+#
+0.5707825245 -0.1332270621 80.0856286702
+-0.1065475774 0.5708971479 80.0329368576
+-0.0003219218 -0.0003122808 1.0000000000
