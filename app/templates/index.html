@@ -33,14 +33,23 @@
     </div>
   </header>
 
+  <!-- Mobile Sidebar Backdrop Overlay -->
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
   <!-- App Body Layout -->
   <div class="app-container">
     
     <!-- Sidebar: Controls & Parameters -->
-    <aside class="sidebar">
+    <aside class="sidebar" id="appSidebar">
       
+      <!-- Mobile Drawer Header -->
+      <div class="sidebar-mobile-header">
+        <span class="sidebar-mobile-title">⚙️ Pipeline Settings</span>
+        <button type="button" class="sidebar-close-btn" id="btnSidebarClose" aria-label="Close Settings">✕</button>
+      </div>
+
       <!-- Action Trigger -->
-      <button id="btnRunPipeline" class="btn-primary" type="button">
+      <button id="btnRunPipeline" class="btn-primary" type="button" style="width: 100%;">
         <span>⚡ Construct Panorama</span>
       </button>
 
@@ -329,6 +338,16 @@
 
     </main>
 
+  </div>
+
+  <!-- Mobile Floating Action Bar -->
+  <div class="mobile-bottom-bar">
+    <button type="button" id="btnMobileSettings" class="btn-secondary" style="flex: 1; padding: 0.65rem 0.5rem; font-size: 0.82rem;">
+      ⚙️ Settings
+    </button>
+    <button type="button" id="btnMobileRun" class="btn-primary" style="flex: 2; padding: 0.65rem 0.85rem; font-size: 0.85rem;">
+      ⚡ Stitch Panorama
+    </button>
   </div>
 
   <!-- Loading Screen Overlay -->

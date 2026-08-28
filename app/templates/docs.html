@@ -23,6 +23,7 @@
     @media (max-width: 900px) {
       .docs-layout { grid-template-columns: 1fr; }
       .docs-sidebar { display: none; }
+      .mobile-toc-picker { display: block !important; }
     }
 
     .docs-sidebar {
@@ -242,6 +243,33 @@
     <!-- Main Content Reader -->
     <main class="docs-content">
       
+      <!-- Mobile Fast Chapter Selector -->
+      <div class="mobile-toc-picker" style="display: none; margin-bottom: 1.5rem; background: var(--bg-card); padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+        <label for="mobileChapterSelect" style="font-size: 0.75rem; font-weight: 800; color: var(--accent-cyan); text-transform: uppercase; margin-bottom: 0.35rem; display: block;">📑 Jump to Chapter:</label>
+        <select id="mobileChapterSelect" style="width: 100%; background: #030712; color: #fff; border: 1px solid var(--border-color); padding: 0.6rem; border-radius: var(--radius-sm); font-size: 0.85rem; outline: none; font-family: var(--font-main);">
+          <option value="#section-overview">1. Project Mandate & Scope</option>
+          <option value="#section-traceability">2. Requirements Traceability</option>
+          <option value="#section-quickstart">3. Installation & Quickstart</option>
+          <option value="#section-math">4. Projective Geometry & Homography</option>
+          <option value="#section-preprocessing">5. Image Preprocessing</option>
+          <option value="#section-detection">6. Feature Detection (SIFT vs ORB)</option>
+          <option value="#section-description">7. Feature Descriptors</option>
+          <option value="#section-matching">8. Matching Metrics & Ratio Test</option>
+          <option value="#section-ransac">9. RANSAC Geometric Consensus</option>
+          <option value="#section-homography">10. Homography Diagnostics</option>
+          <option value="#section-warping">11. Canvas Geometry & Warping</option>
+          <option value="#section-stitching">12. Stitching & Blending</option>
+          <option value="#section-evaluation">13. 8-Metric Framework</option>
+          <option value="#section-experiments">14. 5 Research Benchmarks</option>
+          <option value="#section-ransac-analysis">15. Before vs. After RANSAC</option>
+          <option value="#section-failures">16. Failure Diagnostics (F1-F5)</option>
+          <option value="#section-webapp">17. Web Dashboard Manual</option>
+          <option value="#section-cli">18. CLI & Python SDK</option>
+          <option value="#section-deployment">19. Cloud Deployment</option>
+          <option value="#section-tests">20. Pytest Verification Suite</option>
+        </select>
+      </div>
+
       <!-- 1. Overview -->
       <section id="section-overview">
         <h1>Feature-Based Image Matching & Automatic Panorama Construction</h1>
@@ -610,7 +638,7 @@ pytest tests/ -v
   </div>
 
   <script>
-    // Smooth scroll and active link highlight
+    // Smooth scroll and active link highlight for sidebar and TOC
     document.querySelectorAll('.docs-nav-link, .docs-toc-link').forEach(link => {
       link.addEventListener('click', e => {
         const targetId = link.getAttribute('href');
@@ -625,6 +653,17 @@ pytest tests/ -v
         }
       });
     });
+
+    // Mobile Chapter Selector dropdown change handler
+    const mobileChapterSelect = document.getElementById('mobileChapterSelect');
+    if (mobileChapterSelect) {
+      mobileChapterSelect.addEventListener('change', e => {
+        const target = document.querySelector(e.target.value);
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth' });
+        }
+      });
+    }
   </script>
 </body>
 </html>

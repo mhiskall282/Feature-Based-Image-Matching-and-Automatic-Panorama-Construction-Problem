@@ -30,21 +30,39 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnRunStress = document.getElementById("btnRunStressTest");
   const btnSwitchToStress = document.getElementById("btnSwitchToStress");
   const btnToggleSidebar = document.getElementById("btnToggleSidebar");
-  const sidebar = document.querySelector(".sidebar");
+  const btnMobileSettings = document.getElementById("btnMobileSettings");
+  const btnMobileRun = document.getElementById("btnMobileRun");
+  const btnSidebarClose = document.getElementById("btnSidebarClose");
+  const sidebarBackdrop = document.getElementById("sidebarBackdrop");
+  const sidebar = document.getElementById("appSidebar") || document.querySelector(".sidebar");
 
   let currentAlgorithm = "SIFT";
   let selectedFiles = [];
 
   // ─────────────────────────────────────────────────────────────
-  // Mobile Sidebar Toggle
+  // Mobile Sidebar Drawer Management
   // ─────────────────────────────────────────────────────────────
-  if (btnToggleSidebar && sidebar) {
-    btnToggleSidebar.addEventListener("click", () => {
-      sidebar.classList.toggle("mobile-open");
-      const isOpen = sidebar.classList.contains("mobile-open");
-      btnToggleSidebar.textContent = isOpen ? "✕ Close" : "⚙️ Settings";
-    });
+  function openSidebar() {
+    if (sidebar) sidebar.classList.add("mobile-open");
+    if (sidebarBackdrop) sidebarBackdrop.classList.add("active");
   }
+
+  function closeSidebar() {
+    if (sidebar) sidebar.classList.remove("mobile-open");
+    if (sidebarBackdrop) sidebarBackdrop.classList.remove("active");
+  }
+
+  if (btnToggleSidebar) btnToggleSidebar.addEventListener("click", () => {
+    if (sidebar && sidebar.classList.contains("mobile-open")) closeSidebar();
+    else openSidebar();
+  });
+  if (btnMobileSettings) btnMobileSettings.addEventListener("click", openSidebar);
+  if (btnSidebarClose) btnSidebarClose.addEventListener("click", closeSidebar);
+  if (sidebarBackdrop) sidebarBackdrop.addEventListener("click", closeSidebar);
+  if (btnMobileRun) btnMobileRun.addEventListener("click", () => {
+    closeSidebar();
+    runPipeline();
+  });
 
   // ─────────────────────────────────────────────────────────────
   // Tab Switching
