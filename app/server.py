@@ -39,9 +39,17 @@ from src.evaluation import compute_metrics, get_software_versions
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
-app = Flask(__name__, template_folder="templates", static_folder="static")
+BASE_DIR = Path(__file__).resolve().parent
+ROOT_DIR = BASE_DIR.parent
+
+app = Flask(
+    __name__,
+    template_folder=str(BASE_DIR / "templates"),
+    static_folder=str(BASE_DIR / "static"),
+    static_url_path="/static"
+)
 app.config["MAX_CONTENT_LENGTH"] = 32 * 1024 * 1024  # 32 MB max upload
-UPLOAD_FOLDER = Path(__file__).parent / "uploads"
+UPLOAD_FOLDER = BASE_DIR / "uploads"
 UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
 
 
@@ -111,12 +119,19 @@ def documentation():
     return render_template("docs.html")
 
 
+@app.route("/static/<path:filename>")
+def serve_static(filename):
+    """Explicit static file serving for serverless cloud environments."""
+    static_dir = BASE_DIR / "static"
+    return send_from_directory(str(static_dir), filename)
+
+
 @app.route("/report.pdf")
 @app.route("/download/report")
 def download_report_pdf():
     """Serve the academic project examination report PDF."""
-    report_dir = Path(__file__).parent.parent / "report"
-    return send_from_directory(report_dir, "CSCD608_Examination_Project_Report.pdf", as_attachment=False)
+    report_dir = ROOT_DIR / "report"
+    return send_from_directory(str(report_dir), "CSCD608_Examination_Project_Report.pdf", as_attachment=False)
 
 
 @app.route("/documentation.pdf")
@@ -124,22 +139,22 @@ def download_report_pdf():
 @app.route("/download/docs")
 def download_docs_pdf():
     """Serve the technical documentation manual PDF."""
-    docs_dir = Path(__file__).parent.parent / "docs"
-    return send_from_directory(docs_dir, "CSCD608_Technical_Documentation_Manual.pdf", as_attachment=False)
+    docs_dir = ROOT_DIR / "docs"
+    return send_from_directory(str(docs_dir), "CSCD608_Technical_Documentation_Manual.pdf", as_attachment=False)
 
 
 @app.route("/outputs/<path:filename>")
 def serve_outputs(filename):
     """Serve visual outputs, panoramas, and comparison artifacts."""
-    outputs_dir = Path(__file__).parent.parent / "outputs"
-    return send_from_directory(outputs_dir, filename)
+    outputs_dir = ROOT_DIR / "outputs"
+    return send_from_directory(str(outputs_dir), filename)
 
 
 @app.route("/results/<path:filename>")
 def serve_results(filename):
     """Serve benchmark plots and CSV results."""
-    results_dir = Path(__file__).parent.parent / "results"
-    return send_from_directory(results_dir, filename)
+    results_dir = ROOT_DIR / "results"
+    return send_from_directory(str(results_dir), filename)
 
 
 @app.route("/api/presets", methods=["GET"])
