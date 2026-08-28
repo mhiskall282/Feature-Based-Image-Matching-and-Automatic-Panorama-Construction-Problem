@@ -1,0 +1,29 @@
+# Vercel Deployment Bundle Ignore List
+# Excludes heavy offline research assets and dev files from serverless lambda bundle
+
+# Heavy experiment folders & research logs
+experiments/
+results/
+tests/
+notebooks/
+scripts/
+
+# Heavy experiment stress test visual artifacts (baseline outputs remain bundled)
+outputs/rotation/
+outputs/scale/
+outputs/viewpoint/
+outputs/illumination/
+outputs/sift/
+outputs/orb/
+
+# Python / Git / IDE Caches
+.pytest_cache/
+.git/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

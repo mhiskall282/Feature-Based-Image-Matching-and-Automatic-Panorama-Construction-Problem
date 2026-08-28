@@ -1,0 +1,6 @@
+# Developer and research benchmark suite dependencies
+-r requirements.txt
+pandas>=1.2.0
+scikit-image>=0.18.0
+scipy>=1.6.0
+tqdm>=4.60.0
