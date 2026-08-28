@@ -3,12 +3,14 @@
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![OpenCV](https://img.shields.io/badge/OpenCV-4.5+-green.svg)](https://opencv.org/)
 [![Pytest Passed](https://img.shields.io/badge/pytest-31%20passed-brightgreen.svg)](tests/)
+[![Deploy on Render](https://img.shields.io/badge/Deploy%20on-Render-46E3B7.svg)](render.yaml)
+[![Deploy on Vercel](https://img.shields.io/badge/Deploy%20on-Vercel-black.svg)](vercel.json)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mhiskall282/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/blob/main/notebooks/analysis.ipynb)
 
 A modular, classical computer vision system for feature-based image matching, robust homography estimation via RANSAC, and automatic multi-image panorama stitching.
 
-This repository constitutes the postgraduate examination project for:
+This repository constitutes the postgraduate examination submission for:
 * **Degree:** MPhil / MSc Computer Science
 * **Course:** CSCD608: Advanced Computer Vision (3 Credits)
 * **Semester:** Second Semester Examinations 2025/2026
@@ -17,106 +19,98 @@ This repository constitutes the postgraduate examination project for:
 ---
 
 ## 📑 Table of Contents
-1. [System Architecture & Dataflow](#1-system-architecture--dataflow)
+1. [System Architecture & Pipeline](#1-system-architecture--pipeline)
 2. [Examination Requirements Traceability Matrix](#2-examination-requirements-traceability-matrix)
 3. [Computer Vision Algorithms & Mathematical Foundations](#3-computer-vision-algorithms--mathematical-foundations)
-4. [Step-by-Step Installation & Quickstart](#4-step-by-step-installation--quickstart)
-5. [Automated Experiment Suite & Benchmarking](#5-automated-experiment-suite--benchmarking)
-6. [Comprehensive Test Suite & Validation Report](#6-comprehensive-test-suite--validation-report)
-7. [Visual Results & Output Gallery](#7-visual-results--output-gallery)
-8. [Empirical Evaluation: SIFT vs. ORB](#8-empirical-evaluation-sift-vs-orb)
-9. [Failure Diagnostics & Edge Case Handling](#9-failure-diagnostics--edge-case-handling)
-10. [Google Colab Integration Guide](#10-google-colab-integration-guide)
-11. [Repository Structure](#11-repository-structure)
-12. [Academic Integrity & References](#12-academic-integrity--references)
+4. [Interactive Web Dashboard (`/app`)](#4-interactive-web-dashboard-app)
+5. [Step-by-Step Installation & Quickstart](#5-step-by-step-installation--quickstart)
+6. [Cloud Deployment Guide (Vercel, Render, Docker)](#6-cloud-deployment-guide-vercel-render-docker)
+7. [Automated Experiment Suite & Benchmarking](#7-automated-experiment-suite--benchmarking)
+8. [Comprehensive Test Suite & Validation Report](#8-comprehensive-test-suite--validation-report)
+9. [Visual Results & Output Gallery](#9-visual-results--output-gallery)
+10. [Empirical Evaluation: SIFT vs. ORB](#10-empirical-evaluation-sift-vs-orb)
+11. [Failure Diagnostics & Edge Case Handling](#11-failure-diagnostics--edge-case-handling)
+12. [Google Colab Integration Guide](#12-google-colab-integration-guide)
+13. [Repository Structure](#13-repository-structure)
+14. [Academic Integrity & References](#14-academic-integrity--references)
 
 ---
 
-## 1. System Architecture & Dataflow
+## 1. System Architecture & Pipeline
 
-The system takes $\ge 3$ overlapping photographs of a scene and automatically constructs a panorama through an explicit 10-stage classical computer vision pipeline without relying on black-box APIs (such as `cv2.Stitcher_create`) or pretrained deep learning models.
+The system processes $\ge 3$ overlapping photographs of a scene and constructs a panorama through an explicit 10-stage classical computer vision pipeline without black-box APIs (such as `cv2.Stitcher_create`) or deep learning models.
 
 ```mermaid
 graph TD
-    classDef input fill:#E3F2FD,stroke:#1565C0,stroke-width:2px,color:#0D47A1;
-    classDef feat fill:#FFF3E0,stroke:#E65100,stroke-width:2px,color:#BF360C;
-    classDef match fill:#E8F5E9,stroke:#2E7D32,stroke-width:2px,color:#1B5E20;
-    classDef geom fill:#F3E5F5,stroke:#7B1FA2,stroke-width:2px,color:#4A148C;
-    classDef output fill:#FFEBEE,stroke:#C62828,stroke-width:2px,color:#B71C1C;
-
-    A[Raw Input Images >= 3]:::input --> B[Aspect-Preserving Resize & Validation]:::input
-    B --> C[Grayscale Conversion & CLAHE]:::input
+    A["Raw Input Images (>= 3 Overlapping Views)"] --> B["Aspect-Preserving Resize & Input Validation"]
+    B --> C["Grayscale Conversion & Dynamic Contrast Normalization"]
     
-    C --> D1[SIFT Detector: DoG Scale Space]:::feat
-    C --> D2[ORB Detector: FAST Pyramid]:::feat
+    C --> D1["SIFT Detector: Difference-of-Gaussians Scale Space"]
+    C --> D2["ORB Detector: Multi-Scale FAST Pyramid"]
     
-    D1 --> E1[SIFT 128-float Descriptors]:::feat
-    D2 --> E2[ORB 256-bit Binary Descriptors]:::feat
+    D1 --> E1["SIFT 128-D Float32 Gradient Histograms"]
+    D2 --> E2["ORB 256-Bit Binary Steered rBRIEF"]
     
-    E1 --> F1[BFMatcher L2 + Lowe Ratio Test k=2]:::match
-    E2 --> F2[BFMatcher Hamming + Cross-Check]:::match
+    E1 --> F1["BFMatcher L2 + Lowe's Ratio Test (k=2, thresh=0.75)"]
+    E2 --> F2["BFMatcher Hamming + Bidirectional Cross-Check"]
     
-    F1 --> G[Initial Raw Correspondences]:::match
+    F1 --> G["Initial Feature Correspondences"]
     F2 --> G
     
-    G --> H[RANSAC Outlier Rejection: 4-pt DLT Consensus]:::geom
-    H --> I[Estimated Homography Matrix H in R3x3]:::geom
+    G --> H["RANSAC Outlier Rejection (4-Point DLT Consensus)"]
+    H --> I["Estimated Homography Matrix H in R^{3x3}"]
     
-    I --> J[Homography Diagnostics & Degeneracy Verification]:::geom
-    J --> K[Dynamic Canvas Geometry & Translation Offset T]:::geom
+    I --> J["Homography Diagnostics (Determinant & Condition Check)"]
+    J --> K["Dynamic Canvas Geometry & Translation Offset T"]
     
-    K --> L[Non-Destructive Perspective Warping]:::output
-    L --> M[Distance-Transform Weighted Alpha Blending]:::output
-    M --> N[Seamless Multi-Image Panorama Output]:::output
-    N --> O[Evaluation Metrics M1-M8 & Logging]:::output
+    K --> L["Inverse Perspective Warping (Bilinear Interpolation)"]
+    L --> M["Distance-Transform Weighted Alpha Blending"]
+    M --> N["Final Seamless Multi-Image Panorama Output"]
+    N --> O["Automated Metric Evaluation M1-M8 & Report Export"]
 ```
 
 ### Multi-Image Reference Alignment Architecture
 
-To avoid cumulative alignment drift, the pipeline implements a **reference-centric multi-image topology**:
+To eliminate cumulative alignment drift, the pipeline implements a **reference-centric multi-image topology**:
 
 ```mermaid
 graph LR
-    classDef ref fill:#C8E6C9,stroke:#2E7D32,stroke-width:2px;
-    classDef src fill:#BBDEFB,stroke:#1565C0,stroke-width:2px;
-    classDef out fill:#FFE082,stroke:#FF8F00,stroke-width:2px;
-
-    Img1[Image 1: Left View]:::src -->|Estimate H_12| Ref[Image 2: Centre Reference]:::ref
-    Img3[Image 3: Right View]:::src -->|Estimate H_32| Ref
+    Img1["Image 1: Left View"] -->|Estimate H_12| Ref["Image 2: Centre Reference"]
+    Img3["Image 3: Right View"] -->|Estimate H_32| Ref
     
-    Ref --> Canvas[Shared Coordinate Canvas]:::out
-    Img1 -->|Warp with T * H_12| Canvas
-    Img3 -->|Warp with T * H_32| Canvas
+    Ref --> Canvas["Shared Coordinate Canvas"]
+    Img1 -->|Warp via T * H_12| Canvas
+    Img3 -->|Warp via T * H_32| Canvas
     
-    Canvas --> Blended[Final 3-Image Seamless Panorama]:::out
+    Canvas --> Blended["Final 3-Image Seamless Panorama"]
 ```
 
 ---
 
 ## 2. Examination Requirements Traceability Matrix
 
-Every single requirement from the CSCD608 examination specification maps directly to modular Python implementations and validation artifacts:
+Every single requirement from the CSCD608 examination specification maps directly to transparent source code:
 
 | Requirement ID | Examination Specification | Implementation Module | Automated Test / Artifact | Status |
-|---|---|---|---|---|
-| **REQ-01** | Image Acquisition ($\ge 3$ overlapping scenes) | [`src/preprocessing.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/src/preprocessing.py) | `data/raw/` | **Verified** |
-| **REQ-02** | Image Preparation & Grayscale Conversion | [`src/preprocessing.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/src/preprocessing.py) | `outputs/baseline/preprocessed_*.png` | **Verified** |
-| **REQ-03** | Distinctive Feature Keypoint Detection | [`src/features.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/src/features.py) | `tests/test_features.py` | **Verified** |
-| **REQ-04** | Feature Description (Float32 & Binary) | [`src/features.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/src/features.py) | `tests/test_features.py` | **Verified** |
-| **REQ-05** | Descriptor Matching with Compatible Metrics | [`src/matching.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/src/matching.py) | `tests/test_matching.py` | **Verified** |
-| **REQ-06** | Initial Feature Correspondences Visualization | [`src/visualization.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/src/visualization.py) | `outputs/*/raw_matches_*.png` | **Verified** |
-| **REQ-07** | RANSAC Outlier Rejection & Consensus | [`src/homography.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/src/homography.py) | `tests/test_homography.py` | **Verified** |
-| **REQ-08** | Homography Matrix ($3\times3$) Estimation | [`src/homography.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/src/homography.py) | `outputs/*/homographies/` | **Verified** |
-| **REQ-09** | Perspective Image Transformation / Warping | [`src/warping.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/src/warping.py) | `tests/test_warping.py` | **Verified** |
-| **REQ-10** | Panorama Construction & Seam Blending | [`src/stitching.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/src/stitching.py) | `outputs/*/panorama/` | **Verified** |
-| **REQ-11** | Visual Comparison: Before vs. After RANSAC | [`src/visualization.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/src/visualization.py) | `outputs/*/before_after_*.png` | **Verified** |
-| **REQ-12A** | In-Plane Rotation Robustness ($0^\circ$–$180^\circ$) | [`experiments/run_rotation.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/experiments/run_rotation.py) | `results/rotation_results.csv` | **Verified** |
-| **REQ-12B** | Multi-Scale Robustness ($0.5\times$–$2.0\times$) | [`experiments/run_scale.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/experiments/run_scale.py) | `results/scale_results.csv` | **Verified** |
-| **REQ-12C** | Perspective Viewpoint Distortion Robustness | [`experiments/run_viewpoint.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/experiments/run_viewpoint.py) | `results/viewpoint_results.csv` | **Verified** |
-| **REQ-12D** | Photometric Illumination Changes ($\Delta\beta, \alpha$) | [`experiments/run_illumination.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/experiments/run_illumination.py) | `results/illumination_results.csv` | **Verified** |
-| **REQ-13** | Stage-Wise Execution Latency Profiling | [`src/evaluation.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/src/evaluation.py) | `results/tables/all_results.csv` | **Verified** |
-| **REQ-14** | Quantitative Comparison: SIFT vs. ORB | [`scripts/generate_report_tables.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/scripts/generate_report_tables.py) | `results/tables/comparison_table.csv` | **Verified** |
-| **REQ-15** | End-to-End Demonstrable CLI & Notebook Pipeline | [`scripts/run_pipeline.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/scripts/run_pipeline.py) | `tests/test_pipeline.py` | **Verified** |
+|---|---|---|---|:---:|
+| **REQ-01** | Acquire $\ge 3$ overlapping images | [`src/preprocessing.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/src/preprocessing.py) | `data/raw/` | **Verified** |
+| **REQ-02** | Image preparation & validation | [`src/preprocessing.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/src/preprocessing.py) | `outputs/baseline/preprocessed_*.png` | **Verified** |
+| **REQ-03** | Keypoint detection (SIFT & ORB) | [`src/features.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/src/features.py) | `tests/test_features.py` | **Verified** |
+| **REQ-04** | Feature description (Float & Binary) | [`src/features.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/src/features.py) | `tests/test_features.py` | **Verified** |
+| **REQ-05** | Descriptor matching with appropriate norms | [`src/matching.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/src/matching.py) | `tests/test_matching.py` | **Verified** |
+| **REQ-06** | Initial correspondences visualization | [`src/visualization.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/src/visualization.py) | `outputs/*/raw_matches_*.png` | **Verified** |
+| **REQ-07** | Robust outlier rejection via RANSAC | [`src/homography.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/src/homography.py) | `tests/test_homography.py` | **Verified** |
+| **REQ-08** | Homography matrix ($3\times3$) estimation | [`src/homography.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/src/homography.py) | `outputs/*/homographies/` | **Verified** |
+| **REQ-09** | Dynamic perspective image warping | [`src/warping.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/src/warping.py) | `tests/test_warping.py` | **Verified** |
+| **REQ-10** | Panorama construction & blending | [`src/stitching.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/src/stitching.py) | `outputs/*/panorama/` | **Verified** |
+| **REQ-11** | Before vs. After RANSAC visual comparison | [`src/visualization.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/src/visualization.py) | `outputs/*/before_after_*.png` | **Verified** |
+| **REQ-12A** | In-plane rotation robustness ($0^\circ$–$180^\circ$) | [`experiments/run_rotation.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/experiments/run_rotation.py) | `results/rotation_results.csv` | **Verified** |
+| **REQ-12B** | Multi-scale robustness ($0.5\times$–$2.0\times$) | [`experiments/run_scale.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/experiments/run_scale.py) | `results/scale_results.csv` | **Verified** |
+| **REQ-12C** | Perspective viewpoint distortion robustness | [`experiments/run_viewpoint.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/experiments/run_viewpoint.py) | `results/viewpoint_results.csv` | **Verified** |
+| **REQ-12D** | Photometric illumination changes ($\Delta\beta, \alpha$) | [`experiments/run_illumination.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/experiments/run_illumination.py) | `results/illumination_results.csv` | **Verified** |
+| **REQ-13** | Stage-wise execution latency profiling | [`src/evaluation.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/src/evaluation.py) | `results/tables/all_results.csv` | **Verified** |
+| **REQ-14** | Quantitative evaluation of SIFT vs. ORB | [`scripts/generate_report_tables.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/scripts/generate_report_tables.py) | `results/tables/comparison_table.csv` | **Verified** |
+| **REQ-15** | Complete end-to-end demonstrable pipeline | [`scripts/run_pipeline.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/scripts/run_pipeline.py) | `tests/test_pipeline.py` | **Verified** |
 
 ---
 
@@ -125,17 +119,18 @@ Every single requirement from the CSCD608 examination specification maps directl
 ### 3.1 SIFT: Continuous Scale Space & Gradient Histograms
 1. **Scale-Space Octaves**: Images are convolved with Gaussians across octaves:
    $$L(x, y, \sigma) = G(x, y, \sigma) * I(x, y)$$
-2. **Difference-of-Gaussians (DoG)**: Keypoints are detected as local extrema across adjacent DoG scale layers:
-   $$D(x, y, \sigma) = L(x, y, k\sigma) - L(x, y, \sigma)$$
-3. **Sub-Pixel Localization**: Taylor series expansion of scale-space function $D(\mathbf{x})$ eliminates low-contrast points and unstable edge responses via the Hessian matrix.
-4. **Orientation Assignment**: Gradient magnitude and orientation are computed in a Gaussian-weighted window. The dominant orientation peak aligns the patch canonical axis.
-5. **128-D Descriptor**: An $8$-bin histogram of gradient orientations computed over a $4\times4$ grid of spatial subregions forms a 128-D vector, normalized to unit Euclidean length ($\|\mathbf{f}\|_2 = 1$).
+2. **Difference-of-Gaussians (DoG)**: Keypoints are detected as local scale-space extrema across adjacent DoG scale layers:
+   $$D(x, y, \sigma) = (G(x, y, k\sigma) - G(x, y, \sigma)) * I(x, y) = L(x, y, k\sigma) - L(x, y, \sigma)$$
+3. **Sub-Pixel Extrema Refinement**: A 3D quadratic Taylor expansion of $D(\mathbf{x})$ eliminates unstable extrema and edge responses using the Hessian matrix ratio:
+   $$D(\mathbf{x}) = D + \frac{\partial D^T}{\partial \mathbf{x}}\mathbf{x} + \frac{1}{2}\mathbf{x}^T \frac{\partial^2 D}{\partial \mathbf{x}^2}\mathbf{x}, \quad \hat{\mathbf{x}} = -\left(\frac{\partial^2 D}{\partial \mathbf{x}^2}\right)^{-1} \frac{\partial D}{\partial \mathbf{x}}$$
+4. **Orientation Assignment**: A 36-bin orientation histogram is populated using Gaussian-weighted gradient magnitudes within the keypoint neighborhood. The dominant peak assigns canonical orientation $\theta$.
+5. **128-D Descriptor**: An 8-bin orientation histogram is computed over a $4\times4$ grid of spatial subregions around the keypoint, producing a $4 \times 4 \times 8 = 128$-dimensional floating-point vector, normalized to unit length ($\|\mathbf{f}\|_2 = 1$).
 
 ### 3.2 ORB: Oriented FAST & Steered rBRIEF
 1. **Multi-Scale FAST Detection**: Corner detection tests 16 contiguous pixels on a Bresenham circle around candidate $p$. If $\ge 9$ contiguous pixels are all brighter or darker than $I(p) \pm \epsilon$, a corner is flagged.
 2. **Intensity Centroid**: Canonical patch orientation is computed from image moments:
-   $$m_{pq} = \sum_{x, y} x^p y^q I(x, y), \quad C = \left(\frac{m_{10}}{m_{00}}, \frac{m_{01}}{m_{00}}\right), \quad \theta = \operatorname{atan2}(m_{01}, m_{10})$$
-3. **Rotated BRIEF (rBRIEF)**: 256 pairwise intensity tests are rotated by angle $\theta$:
+   $$m_{pq} = \sum_{x, y} x^p y^q I(x, y), \quad C = \left(\frac{m_{10}}{m_{00}}, \frac{m_{01}}{m_{00}}\right), \quad \theta = \text{atan2}(m_{01}, m_{10})$$
+3. **Rotated BRIEF (rBRIEF)**: 256 pairwise intensity comparison tests $\tau(p; \mathbf{x}_i, \mathbf{y}_i)$ are rotated by angle $\theta$ via rotation matrix $R_\theta$:
    $$f_{256}(p) = \sum_{1 \le i \le 256} 2^{i-1} \tau(p; \mathbf{x}_i, \mathbf{y}_i)$$
    producing a compact 32-byte binary bitstring matched via hardware Hamming distance (`POPCNT`).
 
@@ -148,25 +143,21 @@ RANSAC samples $s = 4$ random point pairs over $N$ iterations:
 
 $$N = \frac{\ln(1 - p)}{\ln(1 - (1 - \epsilon)^s)}$$
 
-where $p = 0.995$ is the desired confidence and $\epsilon$ is the outlier ratio. Points satisfying $\| \mathbf{x}'_i - \operatorname{proj}(H \mathbf{x}_i) \|_2 < 5.0\text{ px}$ are retained as inliers.
+where $p = 0.995$ is the desired confidence and $\epsilon$ is the outlier ratio. Points satisfying $\| \mathbf{x}'_i - \text{proj}(H \mathbf{x}_i) \|_2 < 5.0\text{ px}$ are retained as inliers.
 
 ```mermaid
 graph TD
-    classDef step fill:#F5F5F5,stroke:#424242,stroke-width:2px;
-    classDef decision fill:#FFF8E1,stroke:#FFA000,stroke-width:2px;
-    classDef accept fill:#E8F5E9,stroke:#388E3C,stroke-width:2px;
-
-    Start([Good Feature Correspondences]) --> Sample[1. Randomly Sample 4 Point Pairs]:::step
-    Sample --> Compute[2. Compute Candidate Homography H via DLT]:::step
-    Compute --> Eval[3. Measure Reprojection Error on All Matches]:::step
-    Eval --> Count[4. Count Inliers where Reproj Error < 5.0px]:::step
-    Count --> Check{Inlier Count > Best Model?}:::decision
-    Check -- Yes --> Update[Update Best H and Consensus Set]:::accept
-    Check -- No --> Loop{Iter < Max Iterations 2000?}:::decision
+    Matches["Good Feature Matches"] --> Sample["1. Randomly Sample 4 Point Pairs"]
+    Sample --> Compute["2. Fit Candidate Homography H via DLT"]
+    Compute --> Eval["3. Measure Reprojection Error on All Matches"]
+    Eval --> Count["4. Count Inliers with Error < 5.0 px"]
+    Count --> Check{"Inliers > Best Model?"}
+    Check -- Yes --> Update["Update Best Model & Consensus Set"]
+    Check -- No --> Loop{"Iter < 2000 Iterations?"}
     Update --> Loop
     Loop -- Yes --> Sample
-    Loop -- No --> Refine[5. Refine Homography using ALL Inliers via SVD]:::accept
-    Refine --> Done([Verified Homography H in R3x3])
+    Loop -- No --> Refine["5. Refine Homography on ALL Inliers via SVD"]
+    Refine --> Done["Verified Homography Matrix H in R^{3x3}"]
 ```
 
 ### 3.4 Dynamic Canvas & Distance-Transform Blending
@@ -182,75 +173,86 @@ $$I_{blend}(x, y) = \frac{D_1(x, y)}{D_1(x, y) + D_2(x, y)} I_1(x, y) + \frac{D_
 
 ---
 
-## 4. Step-by-Step Installation & Quickstart
+## 4. Interactive Web Dashboard (`/app`)
 
-### Step 1: Environment Setup
-Clone the repository and install dependencies inside a clean virtual environment:
+A full interactive web application is included in [`app/`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/app) allowing users to test the pipeline visually via a browser interface:
 
 ```bash
-# Clone the repository
+# Launch the interactive web dashboard
+python run_app.py
+```
+Open **[http://127.0.0.1:5000/](http://127.0.0.1:5000/)** in any browser.
+
+---
+
+## 5. Step-by-Step Installation & Quickstart
+
+```bash
+# 1. Clone repository
 git clone https://github.com/mhiskall282/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem.git
 cd Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem
 
-# Create and activate virtual environment
+# 2. Set up virtual environment
 python -m venv venv
 # On Windows:
 .\venv\Scripts\activate
 # On Linux/macOS:
 source venv/bin/activate
 
-# Install all project dependencies
+# 3. Install dependencies
 pip install -r requirements.txt
 ```
 
-### Step 2: Prepare Input Images
-Place $\ge 3$ overlapping images in `data/raw/` sorted in left-to-right order:
-```text
-data/raw/
-├── scene_img01.jpg
-├── scene_img02.jpg
-└── scene_img03.jpg
-```
-
-*Or generate the standard textured verification dataset:*
+### Run Single CLI Pipeline:
 ```bash
-python scripts/generate_sample_images.py --output data/raw --count 3
-```
-
-### Step 3: Run the CLI Panorama Pipeline
-
-#### Execute with SIFT:
-```bash
+# Run SIFT pipeline on input images
 python scripts/run_pipeline.py --algorithm sift --data data/raw --output outputs/sift_run
-```
 
-#### Execute with ORB:
-```bash
+# Run ORB pipeline on input images
 python scripts/run_pipeline.py --algorithm orb --data data/raw --output outputs/orb_run
-```
-
-#### Execute with Custom Hyperparameters:
-```bash
-python scripts/run_pipeline.py --algorithm sift --ratio 0.70 --ransac 4.0 --resize 1280
 ```
 
 ---
 
-## 5. Automated Experiment Suite & Benchmarking
+## 6. Cloud Deployment Guide (Vercel, Render, Docker)
 
-Execute all 5 standardized experiments (Baseline, Rotation, Scale, Viewpoint, Illumination):
+The repository includes complete deployment configurations for all major cloud providers:
+
+### Option A: Deploy on Render.com (Recommended)
+1. Fork or push this repository to GitHub.
+2. Log into [Render Dashboard](https://dashboard.render.com/) and click **New → Blueprint**.
+3. Select your repository. Render will automatically detect [`render.yaml`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/render.yaml) and deploy the Flask service with Gunicorn.
+
+### Option B: Deploy on Vercel
+1. Import the repository in [Vercel](https://vercel.com/new).
+2. Vercel automatically detects [`vercel.json`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/vercel.json) and routes requests through the serverless entrypoint [`api/index.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/api/index.py).
+
+### Option C: Deploy with Docker (Universal)
+```bash
+# Build Docker container
+docker build -t panorama-app .
+
+# Run container on port 5000
+docker run -p 5000:5000 panorama-app
+```
+
+---
+
+## 7. Automated Experiment Suite & Benchmarking
+
+Execute all 5 standardized research experiments:
 
 ```bash
 python experiments/run_all.py
 ```
 
-### Individual Experiment Modules:
+### Individual Experiment Runners:
 ```bash
 # 1. Baseline multi-image panorama
-python experiments/run_baseline.py --data data/raw
+python experiments/run_baseline.py
 
 # 2. Rotation robustness (0° to 180°)
-python experiments/run_rotation.py --angles 0 15 30 45 60 90 120 180
+python experiments/run_rotation.py
 
 # 3. Scale changes (0.5x to 2.0x)
 python experiments/run_scale.py
@@ -262,24 +264,13 @@ python experiments/run_viewpoint.py
 python experiments/run_illumination.py
 ```
 
-### Export Aggregated Tables & Plots:
-```bash
-python scripts/generate_report_tables.py
-```
-
-All empirical results are automatically aggregated to `results/tables/comparison_table.csv` and plotted to `results/plots/`.
-
 ---
 
-## 6. Comprehensive Test Suite & Validation Report
-
-Run the 31 unit and integration tests with detailed output:
+## 8. Comprehensive Test Suite & Validation Report
 
 ```bash
 pytest tests/ -v
 ```
-
-### Test Suite Execution Summary
 
 ```text
 ============================= test session starts =============================
@@ -319,48 +310,34 @@ tests/test_warping.py::TestWarping::test_warp_identity_h PASSED          [ 93%]
 tests/test_warping.py::TestWarping::test_place_reference_correct_shape PASSED [ 96%]
 tests/test_warping.py::TestWarping::test_blend_images_produces_valid_output PASSED [100%]
 
-============================= 31 passed in 1.56s ==============================
+============================= 31 passed in 1.40s ==============================
 ```
 
 ---
 
-## 7. Visual Results & Output Gallery
+## 9. Visual Results & Output Gallery
 
-All pipeline figures are generated and stored in `outputs/` and `results/plots/`:
-
-### 1. Input Scene Set
-| Input Image Set (3 Overlapping Views) | Preprocessed Image & Grayscale Extrema |
-|:---:|:---:|
-| `outputs/baseline/input_images.png` | `outputs/baseline/preprocessed_scene_img01.jpg.png` |
-
-### 2. Feature Detection & Initial Matching
-| SIFT Keypoints (DoG Circles + Orientation) | ORB Keypoints (FAST Corners) |
-|:---:|:---:|
-| `outputs/baseline/SIFT/keypoints_SIFT_img1.png` | `outputs/baseline/ORB/keypoints_ORB_img1.png` |
-
-| SIFT Initial Matches (Lowe Ratio Test Filtered) | Before vs. After RANSAC Outlier Rejection |
-|:---:|:---:|
-| `outputs/baseline/SIFT/raw_matches_SIFT_img1-img2.png` | `outputs/baseline/SIFT/before_after_ransac_SIFT_img1-img2.png` |
-
-### 3. Final Multi-Image Panoramas
-| SIFT Final Panorama ($1803 \times 619\text{ px}$) | ORB Final Panorama ($1281 \times 619\text{ px}$) |
-|:---:|:---:|
-| `outputs/baseline/SIFT/panorama/panorama_SIFT_full.png` | `outputs/baseline/ORB/panorama/panorama_ORB_full.png` |
-
-### 4. Performance & Robustness Benchmark Plots
-| Baseline Multi-Metric Comparison | In-Plane Rotation Robustness Curve |
-|:---:|:---:|
-| `results/plots/baseline_comparison.png` | `results/plots/rotation_inlier_ratio.png` |
-
-| Multi-Scale Robustness Curve | Perspective Viewpoint Shear Curve |
-|:---:|:---:|
-| `results/plots/scale_inlier_ratio.png` | `results/plots/viewpoint_inlier_ratio.png` |
+| Stage / Benchmark | Artifact File Path | Description |
+|---|---|---|
+| **Input Images** | [`outputs/baseline/input_images.png`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/outputs/baseline/input_images.png) | 3 overlapping scene views |
+| **Preprocessing** | [`outputs/baseline/preprocessed_scene_img01.jpg.png`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/outputs/baseline/preprocessed_scene_img01.jpg.png) | Color vs. grayscale normalized views |
+| **SIFT Keypoints** | [`outputs/baseline/SIFT/keypoints_SIFT_img1.png`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/outputs/baseline/SIFT/keypoints_SIFT_img1.png) | Scale-space DoG circles + orientation |
+| **ORB Keypoints** | [`outputs/baseline/ORB/keypoints_ORB_img1.png`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/outputs/baseline/ORB/keypoints_ORB_img1.png) | FAST corner distributions |
+| **Initial Matches** | [`outputs/baseline/SIFT/raw_matches_SIFT_img1-img2.png`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/outputs/baseline/SIFT/raw_matches_SIFT_img1-img2.png) | Lowe's ratio test filtered correspondences |
+| **Before vs. After RANSAC** | [`outputs/baseline/SIFT/before_after_ransac_SIFT_img1-img2.png`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/outputs/baseline/SIFT/before_after_ransac_SIFT_img1-img2.png) | Side-by-side outlier rejection |
+| **SIFT Full Panorama** | [`outputs/baseline/SIFT/panorama/panorama_SIFT_full.png`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/outputs/baseline/SIFT/panorama/panorama_SIFT_full.png) | $1803 \times 619\text{ px}$ blended composite |
+| **ORB Full Panorama** | [`outputs/baseline/ORB/panorama/panorama_ORB_full.png`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/outputs/baseline/ORB/panorama/panorama_ORB_full.png) | $1281 \times 619\text{ px}$ blended composite |
+| **Baseline Bar Comparison** | [`results/plots/baseline_comparison.png`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/results/plots/baseline_comparison.png) | Multi-metric grouped bar charts |
+| **Rotation Robustness Curve** | [`results/plots/rotation_inlier_ratio.png`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/results/plots/rotation_inlier_ratio.png) | $0^\circ$–$180^\circ$ inlier ratio curves |
+| **Scale Robustness Curve** | [`results/plots/scale_inlier_ratio.png`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/results/plots/scale_inlier_ratio.png) | $0.5\times$–$2.0\times$ inlier ratio curves |
+| **Viewpoint Shear Curve** | [`results/plots/viewpoint_inlier_ratio.png`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/results/plots/viewpoint_inlier_ratio.png) | Perspective shear inlier ratio curves |
+| **Illumination Curve** | [`results/plots/illumination_inlier_ratio.png`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/results/plots/illumination_inlier_ratio.png) | Brightness delta inlier ratio curves |
 
 ---
 
-## 8. Empirical Evaluation: SIFT vs. ORB
+## 10. Empirical Evaluation: SIFT vs. ORB
 
-All metrics below are drawn directly from [`results/tables/comparison_table.csv`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/results/tables/comparison_table.csv):
+All values below are measured from automated test runs and recorded in [`results/tables/comparison_table.csv`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/results/tables/comparison_table.csv):
 
 | Experiment | Method | Detected Keypoints (Img1) | Filtered Matches | RANSAC Inliers | Inlier Ratio | Mean Latency (s) | Homography Status |
 |---|---|---|---|---|---|---|---|
@@ -375,54 +352,45 @@ All metrics below are drawn directly from [`results/tables/comparison_table.csv`
 | **Illumination ($\Delta\beta, \alpha$)** | **SIFT** | 1,253.0 | 852.9 | **794.0** | **91.50%** | 4.58 s | **100% Success** |
 | **Illumination ($\Delta\beta, \alpha$)** | **ORB** | 1,000.0 | 640.9 | 594.9 | 87.43% | **4.36 s** | **100% Success** |
 
-### Key Scientific Takeaways
-1. **Geometric Precision**: SIFT delivers higher inlier ratios ($+21.9\%$ on baseline) and lower reprojection errors ($0.13\text{ px}$ vs. $0.93\text{ px}$) due to gradient orientation histogram voting.
-2. **Computational Speed**: ORB extracts features $\sim 4\times$ faster ($0.03\text{ s}$ vs. $0.20\text{ s}$) and matches descriptors $\sim 7\times$ faster via hardware Hamming distance.
-3. **Rotation & Scale Invariance**: SIFT retains high consensus across large rotations ($>90^\circ$) and scale changes ($>1.5\times$), while ORB performs best on moderate transformations ($\le 45^\circ$).
-
 ---
 
-## 9. Failure Diagnostics & Edge Case Handling
-
-The pipeline detects and logs potential failure modes into `results/logs/failures.csv`:
+## 11. Failure Diagnostics & Edge Case Handling
 
 ```mermaid
 graph TD
-    classDef ok fill:#E8F5E9,stroke:#2E7D32,stroke-width:2px;
-    classDef fail fill:#FFEBEE,stroke:#C62828,stroke-width:2px;
-
-    Check1{Keypoints >= 4?} -->|No| F1[F1: Low Texture / Blur]:::fail
-    Check1 -->|Yes| Check2{Matches >= 4?}
-    Check2 -->|No| F2[F2: Low Overlap < 15%]:::fail
-    Check2 -->|Yes| Check3{RANSAC Inliers >= 10?}
-    Check3 -->|No| F3[F3: Outlier Dominance]:::fail
-    Check3 -->|Yes| Check4{1e-6 < det H < 1e6?}
-    Check4 -->|No| F4[F4: Degenerate Matrix]:::fail
-    Check4 -->|Yes| OK[Success: Execute Warp & Blend]:::ok
+    Check1{"Keypoints >= 4?"} -->|No| F1["F1: Insufficient Keypoints / Textureless Scene"]
+    Check1 -->|Yes| Check2{"Filtered Matches >= 4?"}
+    Check2 -->|No| F2["F2: Low Scene Overlap (< 15%)"]
+    Check2 -->|Yes| Check3{"RANSAC Inliers >= 10?"}
+    Check3 -->|No| F3["F3: Outlier Dominance / Severe Blur"]
+    Check3 -->|Yes| Check4{"1e-6 < det(H) < 1e6?"}
+    Check4 -->|No| F4["F4: Degenerate Collinear Homography"]
+    Check4 -->|Yes| OK["Success: Execute Dynamic Warping & Blending"]
 ```
 
 ---
 
-## 10. Google Colab Integration Guide
+## 12. Google Colab Integration Guide
 
 An interactive notebook is available at [`notebooks/analysis.ipynb`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/notebooks/analysis.ipynb).
-
-1. Click the **Open In Colab** badge at the top of this README.
-2. Run **Cell 1** to clone the repository and install headless dependencies.
-3. Step through cells to interactively inspect keypoints, initial correspondences, RANSAC inlier lines, warped perspective layers, and panoramas.
+Click the **Open In Colab** badge at the top of this README to execute the complete pipeline in the cloud.
 
 ---
 
-## 11. Repository Structure
+## 13. Repository Structure
 
 ```text
 .
-├── ai/                            # AI System Intelligence & Specifications
-├── data/
-│   ├── raw/                       # Source input images (>= 3 overlapping)
-│   ├── processed/                 # Grayscale normalized images
-│   └── transformed/               # Synthetic transformation variants
-├── src/                           # Core CV Implementation
+├── app/                           # Interactive Web Application Dashboard
+│   ├── server.py                  # Flask backend & REST APIs
+│   ├── static/css/style.css       # Dark-mode glassmorphism styling
+│   ├── static/js/main.js          # Interactive UI logic & visualizer
+│   └── templates/index.html       # Web dashboard SPA layout
+│
+├── api/                           # Vercel Serverless Function Entrypoint
+│   └── index.py
+│
+├── src/                           # Core CV Engine
 │   ├── config.py                  # Global hyperparameters & configurations
 │   ├── preprocessing.py           # Resize, validation, and grayscale
 │   ├── features.py                # SIFT & ORB detection and description
@@ -433,23 +401,25 @@ An interactive notebook is available at [`notebooks/analysis.ipynb`](file:///c:/
 │   ├── evaluation.py              # Metrics M1–M8 logging and failure reporting
 │   ├── visualization.py           # Plotting & visualization utilities
 │   └── pipeline.py                # Master pipeline orchestrator
-├── experiments/                   # Automated Experiment Runners
+│
+├── experiments/                   # Automated Research Experiment Runners
 ├── scripts/                       # Command-Line Utilities & Generators
 ├── notebooks/                     # Google Colab & Jupyter Notebooks
 ├── tests/                         # Pytest Unit & Integration Test Suite
 ├── results/                       # Empirical CSVs, Tables, and Trend Plots
 ├── outputs/                       # Rendered Visualizations & Panoramas
-├── report/                        # Academic Research Report
+├── report/                        # Academic Examination Report
+├── Dockerfile                     # Universal Container Configuration
+├── render.yaml                    # Render.com Blueprint
+├── vercel.json                    # Vercel Deployment Configuration
+├── run_app.py                     # Convenience Web App Launcher
 └── requirements.txt               # Dependencies
 ```
 
 ---
 
-## 12. Academic Integrity & References
+## 14. Academic Integrity & References
 
-All reported data points were generated through deterministic execution of `experiments/run_all.py` with fixed random seeds (`seed=42`).
-
-### References
 1. **Lowe, D. G. (2004).** Distinctive image features from scale-invariant keypoints. *International Journal of Computer Vision*, 60(2), 91–110.
 2. **Rublee, E., Rabaud, V., Konolige, K., & Bradski, G. (2011).** ORB: An efficient alternative to SIFT or SURF. In *IEEE International Conference on Computer Vision (ICCV)* (pp. 2564–2571).
 3. **Fischler, M. A., & Bolles, R. C. (1981).** Random sample consensus: a paradigm for model fitting. *Communications of the ACM*, 24(6), 381–395.

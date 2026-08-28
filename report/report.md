@@ -33,37 +33,31 @@ Because $H$ is defined up to an arbitrary non-zero scale factor, it possesses **
 
 ```mermaid
 graph TD
-    classDef input fill:#E3F2FD,stroke:#1565C0,stroke-width:2px,color:#0D47A1;
-    classDef feat fill:#FFF3E0,stroke:#E65100,stroke-width:2px,color:#BF360C;
-    classDef match fill:#E8F5E9,stroke:#2E7D32,stroke-width:2px,color:#1B5E20;
-    classDef geom fill:#F3E5F5,stroke:#7B1FA2,stroke-width:2px,color:#4A148C;
-    classDef output fill:#FFEBEE,stroke:#C62828,stroke-width:2px,color:#B71C1C;
-
-    A[Raw Overlapping Images >= 3]:::input --> B[Aspect-Preserving Resize & Validation]:::input
-    B --> C[Grayscale Conversion & Dynamic Contrast Balancing]:::input
+    A["Raw Input Images (>= 3 Overlapping Views)"] --> B["Aspect-Preserving Resize & Validation"]
+    B --> C["Grayscale Conversion & Dynamic Contrast Normalization"]
     
-    C --> D1[SIFT Detector: DoG Scale Space Extrema]:::feat
-    C --> D2[ORB Detector: Multi-Scale FAST Corners]:::feat
+    C --> D1["SIFT Detector: DoG Scale Space Extrema"]
+    C --> D2["ORB Detector: Multi-Scale FAST Corners"]
     
-    D1 --> E1[SIFT 128-D Float32 Descriptors]:::feat
-    D2 --> E2[ORB 256-bit Binary rBRIEF Strings]:::feat
+    D1 --> E1["SIFT 128-D Float32 Descriptors"]
+    D2 --> E2["ORB 256-Bit Binary rBRIEF Strings"]
     
-    E1 --> F1[BFMatcher L2 + Lowe Ratio Test k=2]:::match
-    E2 --> F2[BFMatcher Hamming + Bidirectional Cross-Check]:::match
+    E1 --> F1["BFMatcher L2 + Lowe's Ratio Test (k=2, thresh=0.75)"]
+    E2 --> F2["BFMatcher Hamming + Cross-Check"]
     
-    F1 --> G[Raw Initial Correspondences]:::match
+    F1 --> G["Initial Feature Correspondences"]
     F2 --> G
     
-    G --> H[RANSAC Outlier Rejection: 4-Point Sample Consensus]:::geom
-    H --> I[Estimated Homography Matrix H in R3x3]:::geom
+    G --> H["RANSAC Outlier Rejection: 4-Point DLT Consensus"]
+    H --> I["Estimated Homography Matrix H in R^{3x3}"]
     
-    I --> J[Homography Rank & Determinant Diagnostics]:::geom
-    J --> K[Dynamic Canvas Geometry & Coordinate Translation T]:::geom
+    I --> J["Homography Matrix Diagnostics & Degeneracy Verification"]
+    J --> K["Dynamic Canvas Geometry & Translation Offset T"]
     
-    K --> L[Inverse Perspective Warping with Bilinear Sampling]:::output
-    L --> M[Distance-Transform Weighted Alpha Blending]:::output
-    M --> N[Seamless Multi-Image Panorama Output]:::output
-    N --> O[Automated Metric Evaluation M1-M8 & Reporting]:::output
+    K --> L["Inverse Perspective Warping with Bilinear Sampling"]
+    L --> M["Distance-Transform Weighted Alpha Blending"]
+    M --> N["Seamless Multi-Image Panorama Output"]
+    N --> O["Automated Metric Evaluation M1-M8 & Reporting"]
 ```
 
 ---
@@ -81,55 +75,78 @@ Lowe (2004) formulated SIFT to achieve invariance to image scaling, in-plane rot
 4. **Orientation Assignment**: A 36-bin orientation histogram is populated using Gaussian-weighted gradient magnitudes within the keypoint neighborhood. The dominant peak assigns canonical orientation $\theta$.
 5. **128-D Descriptor**: An 8-bin orientation histogram is computed over a $4\times4$ grid of spatial subregions around the keypoint, producing a $4 \times 4 \times 8 = 128$-dimensional floating-point vector, normalized to unit length ($\|\mathbf{f}\|_2 = 1$).
 
+```mermaid
+graph LR
+    Img["Input Image"] --> Oct1["Octave 1: Scale sigma"]
+    Oct1 --> Oct2["Octave 2: Downsample 2x"]
+    Oct2 --> Oct3["Octave 3: Downsample 4x"]
+    
+    Oct1 --> DoG1["Difference-of-Gaussians (DoG)"]
+    Oct2 --> DoG2["Difference-of-Gaussians (DoG)"]
+    Oct3 --> DoG3["Difference-of-Gaussians (DoG)"]
+    
+    DoG1 --> Ext1["3x3x3 Neighborhood Extrema Check"]
+    DoG2 --> Ext2["Taylor Series Sub-Pixel Refinement"]
+    DoG3 --> Ext3["Hessian Edge & Low-Contrast Filter"]
+    
+    Ext1 --> Desc["Gradient Orientation Voting -> 128-D Unit Vector"]
+    Ext2 --> Desc
+    Ext3 --> Desc
+```
+
 ### 2.2 ORB: Oriented FAST & Steered rBRIEF
 Rublee et al. (2011) proposed ORB as a computationally efficient binary alternative:
 1. **Multi-Scale FAST**: Features from Accelerated Segment Test (FAST-9) detects corners on an 8-level image pyramid. Harris corner scores rank and retain the top $N$ keypoints.
 2. **Intensity Centroid Orientation**: Patch orientation is calculated using image moments:
-   $$m_{pq} = \sum_{x, y} x^p y^q I(x, y), \quad C = \left(\frac{m_{10}}{m_{00}}, \frac{m_{01}}{m_{00}}\right), \quad \theta = \operatorname{atan2}(m_{01}, m_{10})$$
+   $$m_{pq} = \sum_{x, y} x^p y^q I(x, y), \quad C = \left(\frac{m_{10}}{m_{00}}, \frac{m_{01}}{m_{00}}\right), \quad \theta = \text{atan2}(m_{01}, m_{10})$$
 3. **Steered Binary Robust Independent Elementary Features (rBRIEF)**: 256 pairwise intensity comparison tests $\tau(p; \mathbf{x}_i, \mathbf{y}_i)$ are rotated by angle $\theta$ via rotation matrix $R_\theta$:
    $$\tau(p; \mathbf{x}, \mathbf{y}) = \begin{cases} 1 & \text{if } I(p + \mathbf{x}) < I(p + \mathbf{y}) \\ 0 & \text{otherwise} \end{cases}$$
    The resulting 256-bit string is matched via bitwise XOR and population count (`POPCNT`).
 
-### 2.3 RANSAC Consensus & Robust Estimation
-The Random Sample Consensus (RANSAC) algorithm (Fischler & Bolles, 1981) resolves the outlier contamination problem in raw feature correspondences.
+```mermaid
+graph LR
+    Fast["FAST Corner Detection on 8-Level Pyramid"] --> Harris["Harris Score Filtering: Top N Keypoints"]
+    Harris --> Moments["Compute Image Moments m00, m10, m01"]
+    Moments --> Angle["Calculate Intensity Centroid Angle: theta = atan2(m01, m10)"]
+    Angle --> Steer["Steer 256 Binary Test Coordinates by Rotation Matrix R_theta"]
+    Steer --> Bits["Evaluate 256 Pairwise Binary Tests: 32-Byte String"]
+```
+
+### 2.3 RANSAC & Homography Estimation
+Direct Linear Transformation (DLT) computes $H$ from point correspondences. Because $H$ has 8 degrees of freedom (up to scale), a minimum of 4 non-collinear point correspondences is required.
+
+RANSAC (Fischler & Bolles, 1981) iteratively samples 4 random point pairs, evaluates transfer reprojection errors, and extracts the consensus inlier set:
 
 ```mermaid
 graph TD
-    classDef box fill:#F5F5F5,stroke:#333,stroke-width:2px;
-    classDef dec fill:#FFF3E0,stroke:#E65100,stroke-width:2px;
-    classDef final fill:#E8F5E9,stroke:#2E7D32,stroke-width:2px;
-
-    Matches[Raw Good Matches] --> Rand[Sample 4 Random Point Correspondences]:::box
-    Rand --> DLT[Fit Candidate Homography H_cand via DLT]:::box
-    DLT --> Reproj[Compute Transfer Reprojection Error on All Matches]:::box
-    Reproj --> Count[Count Inliers with Error < 5.0 px]:::box
-    Count --> MaxCheck{Inlier Count > Best Model?}:::dec
-    MaxCheck -- Yes --> Save[Store Best Model & Inlier Subset]:::final
-    MaxCheck -- No --> IterCheck{Iter < 2000 Iterations?}:::dec
+    Matches["Good Feature Matches"] --> Rand["1. Sample 4 Random Point Correspondences"]
+    Rand --> DLT["2. Fit Candidate Homography H via DLT"]
+    DLT --> Reproj["3. Compute Transfer Error: ||x' - H*x||_2"]
+    Reproj --> Count["4. Count Inliers with Error < 5.0 px"]
+    Count --> MaxCheck{"Inliers > Best Model?"}
+    MaxCheck -- Yes --> Save["Store Best Model & Inlier Subset"]
+    MaxCheck -- No --> IterCheck{"Iter < 2000 Iterations?"}
     Save --> IterCheck
     IterCheck -- Yes --> Rand
-    IterCheck -- No --> SVD[Refine Final H on ALL Inliers via SVD / Least Squares]:::final
+    IterCheck -- No --> SVD["5. Refine Final H on ALL Inliers via SVD / Least Squares"]
+    SVD --> Done["Verified Homography Matrix H in R^{3x3}"]
 ```
 
 ---
 
 ## 3. Implementation Architecture
 
-The repository is structured into modular, decoupled Python components:
+The system is structured as a decoupled, testable Python package:
 
-```text
-src/
-├── config.py             # Global constants, thresholds, and hyperparameter dictionaries
-├── preprocessing.py      # Image validation, aspect-ratio resizing, grayscale conversion, and CLAHE
-├── features.py           # Unified factory interface for SIFT and ORB detectors/descriptors
-├── matching.py           # Matcher with L2 norm + Lowe ratio test (SIFT) vs. Hamming + cross-check (ORB)
-├── homography.py         # 4-point RANSAC, DLT matrix solver, and degeneracy diagnostics
-├── warping.py            # Dynamic canvas geometry, coordinate offset shift, and alpha blending
-├── stitching.py          # Reference-centric multi-image panorama alignment
-├── evaluation.py         # Metrics M1–M8 logging, execution latency profiling, and CSV serialization
-├── visualization.py      # Visualizations (keypoints, match lines, RANSAC inliers, panoramas)
-└── pipeline.py           # End-to-end transparent pipeline orchestrator
-```
+- [`src/preprocessing.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/src/preprocessing.py): Aspect-preserving resizing, validation, and grayscale conversion.
+- [`src/features.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/src/features.py): Feature factory returning SIFT or ORB detector/descriptor instances.
+- [`src/matching.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/src/matching.py): Matches float descriptors via $L_2$ kNN ratio test and binary descriptors via Hamming distance cross-check.
+- [`src/homography.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/src/homography.py): Executes RANSAC, reprojection error measurement, and matrix diagnostics.
+- [`src/warping.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/src/warping.py): Forward corner projection, canvas coordinate translation offset, and distance blending.
+- [`src/stitching.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/src/stitching.py): Reference-coordinate multi-image panorama compositing.
+- [`src/evaluation.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/src/evaluation.py): Metric logging across M1–M8 with strict CSV serialization.
+- [`src/visualization.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/src/visualization.py): Standardized visualization with RGB conversion and memory cleanup.
+- [`src/pipeline.py`](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/src/pipeline.py): End-to-end transparent orchestrator.
 
 ---
 
@@ -137,7 +154,7 @@ src/
 
 | Requirement ID | Examination Specification | Implementation Component | Verification Artifact | Verification Status |
 |---|---|---|---|:---:|
-| **REQ-01** | Acquire $\ge 3$ overlapping images | `src/preprocessing.py::load_image_set` | `data/raw/` | **Verified** |
+| **REQ-01** | Multi-image scene acquisition ($\ge 3$ images) | `src/preprocessing.py::load_image_set` | `data/raw/` | **Verified** |
 | **REQ-02** | Image preparation & validation | `src/preprocessing.py::preprocess` | `outputs/baseline/preprocessed_*.png` | **Verified** |
 | **REQ-03** | Keypoint detection (SIFT & ORB) | `src/features.py::detect_and_describe` | `outputs/baseline/*/keypoints_*.png` | **Verified** |
 | **REQ-04** | Feature description (Float & Binary) | `src/features.py::detect_and_describe` | `results/baseline_results.csv` | **Verified** |
@@ -166,17 +183,14 @@ The baseline experiment evaluates SIFT and ORB across 3 consecutive photographic
 
 ```mermaid
 graph LR
-    classDef img fill:#E1F5FE,stroke:#0288D1,stroke-width:2px;
-    classDef pano fill:#E8F5E9,stroke:#388E3C,stroke-width:2px;
-
-    I1[View 1: scene_img01.jpg 750x600]:::img --> Match1[Match & Estimate H_12]
-    I2[View 2: scene_img02.jpg 750x600]:::img --> Match1
-    I2 --> Match2[Match & Estimate H_32]
-    I3[View 3: scene_img03.jpg 750x600]:::img --> Match2
+    I1["View 1: scene_img01.jpg (750x600)"] --> Match1["Match & Estimate H_12"]
+    I2["View 2: scene_img02.jpg (750x600)"] --> Match1
+    I2 --> Match2["Match & Estimate H_32"]
+    I3["View 3: scene_img03.jpg (750x600)"] --> Match2
     
-    Match1 --> Stitch[Dynamic Canvas Warping & Alpha Blending]
+    Match1 --> Stitch["Dynamic Canvas Warping & Alpha Blending"]
     Match2 --> Stitch
-    Stitch --> Pano[Full 3-Image Panorama: 1803x619 px]:::pano
+    Stitch --> Pano["Full 3-Image Panorama: 1803x619 px"]
 ```
 
 #### Empirical Baseline Results Table
@@ -312,27 +326,22 @@ Data recorded from [`results/illumination_results.csv`](file:///c:/Users/user/De
 | Illumination ($\beta = -50$) | SIFT | 777 | 717 | 60 | **92.28%** |
 | Illumination ($\beta = -50$) | ORB | 600 | 559 | 41 | **93.17%** |
 
-*Analysis:* Raw descriptor matching contains false positives due to repetitive architectural elements and textureless zones. RANSAC purges non-homography match vectors, ensuring that only geometrically consistent inliers determine the warping transformation.
+*Analysis:* Before RANSAC, raw matches include false correspondences from repetitive architectural elements and textureless zones. RANSAC purges non-homography match vectors, ensuring that only geometrically consistent inliers determine the warping transformation.
 
 ---
 
 ## 7. Failure Case Diagnostics & Edge Case Handling
 
-The system integrates proactive exception handling and matrix diagnostics:
-
 ```mermaid
 graph TD
-    classDef ok fill:#E8F5E9,stroke:#2E7D32,stroke-width:2px;
-    classDef fail fill:#FFEBEE,stroke:#C62828,stroke-width:2px;
-
-    Check1{Keypoints >= 4?} -->|No| F1[F1: Insufficient Keypoints]:::fail
-    Check1 -->|Yes| Check2{Good Matches >= 4?}
-    Check2 -->|No| F2[F2: Low Scene Overlap]:::fail
-    Check2 -->|Yes| Check3{RANSAC Inliers >= 10?}
-    Check3 -->|No| F3[F3: Outlier Dominance]:::fail
-    Check3 -->|Yes| Check4{1e-6 < det H < 1e6?}
-    Check4 -->|No| F4[F4: Degenerate Matrix]:::fail
-    Check4 -->|Yes| OK[Success: Warping & Blending]:::ok
+    Check1{"Keypoints >= 4?"} -->|No| F1["F1: Insufficient Keypoints / Textureless Scene"]
+    Check1 -->|Yes| Check2{"Filtered Matches >= 4?"}
+    Check2 -->|No| F2["F2: Low Scene Overlap (< 15%)"]
+    Check2 -->|Yes| Check3{"RANSAC Inliers >= 10?"}
+    Check3 -->|No| F3["F3: Outlier Dominance / Severe Blur"]
+    Check3 -->|Yes| Check4{"1e-6 < det(H) < 1e6?"}
+    Check4 -->|No| F4["F4: Degenerate Collinear Homography"]
+    Check4 -->|Yes| OK["Success: Execute Dynamic Warping & Blending"]
 ```
 
 | Failure Code | Description | Root Cause | Automated Mitigation |
