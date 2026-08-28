@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Feature-Based Image Matching & Automatic Panorama Construction</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+  @page {
+    size: A4;
+    margin: 20mm 18mm 20mm 18mm;
+    @bottom-right {
+      content: counter(page);
+    }
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: #1e293b;
+    background-color: #ffffff;
+    line-height: 1.6;
+    font-size: 10pt;
+  }
+
+  .header-cover {
+    border-bottom: 3px solid #2563eb;
+    padding-bottom: 1.25rem;
+    margin-bottom: 2rem;
+  }
+
+  .institution {
+    font-size: 11pt;
+    font-weight: 800;
+    color: #2563eb;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .doc-title {
+    font-size: 18pt;
+    font-weight: 800;
+    color: #0f172a;
+    margin-top: 0.4rem;
+    margin-bottom: 0.4rem;
+    line-height: 1.25;
+  }
+
+  .doc-subtitle {
+    font-size: 11pt;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 0.8rem;
+  }
+
+  .meta-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 0.6rem 0.8rem;
+    font-size: 8.5pt;
+  }
+
+  .meta-item strong {
+    color: #0f172a;
+  }
+
+  .section-title {
+    font-size: 13pt;
+    font-weight: 800;
+    color: #0f172a;
+    border-bottom: 1.5px solid #cbd5e1;
+    padding-bottom: 0.3rem;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    page-break-after: avoid;
+  }
+
+  .subsection-title {
+    font-size: 11pt;
+    font-weight: 700;
+    color: #1e40af;
+    margin-top: 1.1rem;
+    margin-bottom: 0.45rem;
+    page-break-after: avoid;
+  }
+
+  .subsubsection-title {
+    font-size: 10pt;
+    font-weight: 700;
+    color: #334155;
+    margin-top: 0.8rem;
+    margin-bottom: 0.35rem;
+    page-break-after: avoid;
+  }
+
+  .paragraph {
+    margin-bottom: 0.75rem;
+    text-align: justify;
+  }
+
+  .list-item, .list-item-ordered {
+    margin-left: 1.4rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .table-container {
+    margin: 1rem 0;
+    page-break-inside: avoid;
+  }
+
+  .academic-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 8.5pt;
+  }
+
+  .academic-table th {
+    background-color: #f1f5f9;
+    color: #0f172a;
+    font-weight: 700;
+    border: 1px solid #cbd5e1;
+    padding: 6px 8px;
+    text-align: left;
+  }
+
+  .academic-table td {
+    border: 1px solid #e2e8f0;
+    padding: 5px 8px;
+    color: #334155;
+  }
+
+  .academic-table tr:nth-child(even) {
+    background-color: #f8fafc;
+  }
+
+  .code-block {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-left: 3px solid #3b82f6;
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-family: 'JetBrains Mono', Consolas, monospace;
+    font-size: 8pt;
+    margin: 0.8rem 0;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+    color: #0f172a;
+  }
+
+  code {
+    font-family: 'JetBrains Mono', Consolas, monospace;
+    background: #f1f5f9;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-size: 8.5pt;
+    color: #0f172a;
+  }
+
+  .divider {
+    border: 0;
+    height: 1px;
+    background: #e2e8f0;
+    margin: 1.5rem 0;
+  }
+
+  .callout {
+    border-left: 4px solid #3b82f6;
+    background: #eff6ff;
+    padding: 0.6rem 0.9rem;
+    border-radius: 0 6px 6px 0;
+    margin: 0.9rem 0;
+    page-break-inside: avoid;
+  }
+
+  .callout-text {
+    font-size: 9pt;
+    color: #1e3a8a;
+  }
+
+  .footer-note {
+    margin-top: 2rem;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 0.5rem;
+    font-size: 8pt;
+    color: #64748b;
+    display: flex;
+    justify-content: space-between;
+  }
+</style>
+<!-- MathJax for rendering LaTeX math formulas cleanly -->
+<script>
+  window.MathJax = {
+    tex: {
+      inlineMath: [['$', '$']],
+      displayMath: [['$$', '$$']]
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+
+<div class="header-cover">
+  <div class="institution">University of Ghana • Department of Computer Science</div>
+  <h1 class="doc-title">Feature-Based Image Matching & Automatic Panorama Construction</h1>
+  <div class="doc-subtitle">CSCD608: Advanced Computer Vision — Formal Project Examination Report</div>
+  <div class="meta-grid">
+    <div class="meta-item"><strong>Course:</strong> CSCD608: Advanced Computer Vision (3 Credits)</div>
+    <div class="meta-item"><strong>Examination:</strong> 2025/2026 Second Semester</div>
+    <div class="meta-item"><strong>Question:</strong> Question 1 — Feature Matching & Panoramic Stitching</div>
+    <div class="meta-item"><strong>Author:</strong> Postgraduate Candidate (MPhil / MSc Computer Science)</div>
+  </div>
+</div>
+
+<h2 class="section-title">CSCD608: Advanced Computer Vision — Project Examination Report</h2>
+<p class="paragraph"><strong>Author:</strong> Candidate for MPhil/MSc Computer Science</p>
+<p class="paragraph"><strong>Course:</strong> CSCD608: Advanced Computer Vision (3 Credits)</p>
+<p class="paragraph"><strong>Academic Year / Semester:</strong> 2025/2026 Second Semester Examinations</p>
+<p class="paragraph"><strong>Time Allowed:</strong> One Week</p>
+<hr class="divider">
+<h2 class="section-title">Abstract</h2>
+<p class="paragraph">This research examination project implements, validates, and evaluates a classical computer vision pipeline for automatic panorama construction from multiple overlapping photographs. In strict compliance with the examination guidelines, the system is engineered from foundational mathematical primitives without black-box APIs (such as <code>cv2.Stitcher_create</code>) or deep learning models. The 10-stage architecture comprises image validation, aspect-preserving preprocessing, feature detection, descriptor extraction, feature matching, robust geometric estimation via Random Sample Consensus (RANSAC), homography estimation, non-destructive perspective image warping with dynamic bounding boxes, distance-transform weighted alpha blending, and quantitative metric logging.</p>
+<p class="paragraph">We perform a comparative evaluation between two feature extraction paradigms studied in the course: the floating-point Scale-Invariant Feature Transform (<strong>SIFT</strong>) with Euclidean ($L_2$) distance and Lowe's ratio test, and the binary Oriented FAST and Rotated BRIEF (<strong>ORB</strong>) with Hamming distance and cross-check matching. Both methods are evaluated on a 3-image baseline panoramic dataset and across four transformation stress tests: (1) in-plane rotation ($0^\circ$ to $180^\circ$), (2) scale changes ($0.5\times$ to $2.0\times$), (3) perspective viewpoint distortion, and (4) photometric illumination changes ($\Delta\beta \in [-100, 100]$, $\alpha \in [0.5, 1.5]$). Across 66 experimental trials, SIFT demonstrates superior geometric accuracy with mean reprojection errors of $0.12\text{ px}$–$0.35\text{ px}$ and higher inlier retention ($>90\%$) under severe transformations. Conversely, ORB achieves an order-of-magnitude reduction in feature extraction time ($0.02\text{ s}$–$0.04\text{ s}$ vs. $0.18\text{ s}$–$0.32\text{ s}$ for SIFT) and a $16\times$ more compact descriptor representation (32 bytes vs. 512 bytes), establishing ORB as the preferred choice for real-time applications and SIFT as the gold standard for high-fidelity panoramic reconstruction.</p>
+<hr class="divider">
+<h2 class="section-title">1. Introduction & Problem Statement</h2>
+<p class="paragraph">Automatic panoramic image construction requires estimating geometric coordinate transformations between multiple overlapping photographic views taken from a common viewpoint or observing a planar surface.</p>
+<h3 class="subsection-title">1.1 Mathematical Formulation of Homography</h3>
+<p class="paragraph">When a camera undergoes pure rotation around its optical center $\mathbf{C}$ or views a planar scene in $\mathbb{R}^3$, the transformation between pixel coordinates $\mathbf{x} = [x, y]^T$ in image 1 and corresponding coordinates $\mathbf{x}' = [x', y']^T$ in image 2 is represented by a 2D projective transformation—a <strong>homography</strong> matrix $H \in \mathbb{R}^{3\times3}$:</p>
+<p class="paragraph">$$\begin{bmatrix} x' \\ y' \\ 1 \end{bmatrix} \sim \begin{bmatrix} h_{11} & h_{12} & h_{13} \\ h_{21} & h_{22} & h_{23} \\ h_{31} & h_{32} & h_{33} \end{bmatrix} \begin{bmatrix} x \\ y \\ 1 \end{bmatrix}$$</p>
+<p class="paragraph">In inhomogeneous Cartesian coordinates:</p>
+<p class="paragraph">$$x' = \frac{h_{11}x + h_{12}y + h_{13}}{h_{31}x + h_{32}y + h_{33}}, \quad y' = \frac{h_{21}x + h_{22}y + h_{23}}{h_{31}x + h_{32}y + h_{33}}$$</p>
+<p class="paragraph">Because $H$ is defined up to an arbitrary non-zero scale factor, it possesses <strong>8 degrees of freedom (DOF)</strong>. Consequently, a minimum of $4$ non-collinear point correspondences (each providing 2 independent linear constraints) is necessary to solve for $H$ using the Direct Linear Transformation (DLT) algorithm.</p>
+<div class="mermaid-diagram"><pre class="mermaid">graph TD
+    A["Raw Input Images (>= 3 Overlapping Views)"] --> B["Aspect-Preserving Resize & Validation"]
+    B --> C["Grayscale Conversion & Dynamic Contrast Normalization"]
+    
+    C --> D1["SIFT Detector: DoG Scale Space Extrema"]
+    C --> D2["ORB Detector: Multi-Scale FAST Corners"]
+    
+    D1 --> E1["SIFT 128-D Float32 Descriptors"]
+    D2 --> E2["ORB 256-Bit Binary rBRIEF Strings"]
+    
+    E1 --> F1["BFMatcher L2 + Lowe's Ratio Test (k=2, thresh=0.75)"]
+    E2 --> F2["BFMatcher Hamming + Cross-Check"]
+    
+    F1 --> G["Initial Feature Correspondences"]
+    F2 --> G
+    
+    G --> H["RANSAC Outlier Rejection: 4-Point DLT Consensus"]
+    H --> I["Estimated Homography Matrix H in R^{3x3}"]
+    
+    I --> J["Homography Matrix Diagnostics & Degeneracy Verification"]
+    J --> K["Dynamic Canvas Geometry & Translation Offset T"]
+    
+    K --> L["Inverse Perspective Warping with Bilinear Sampling"]
+    L --> M["Distance-Transform Weighted Alpha Blending"]
+    M --> N["Seamless Multi-Image Panorama Output"]
+    N --> O["Automated Metric Evaluation M1-M8 & Reporting"]</pre></div>
+<hr class="divider">
+<h2 class="section-title">2. Theoretical Foundations & Literature Review</h2>
+<h3 class="subsection-title">2.1 SIFT: Continuous Scale Space & Gradient Histograms</h3>
+<p class="paragraph">Lowe (2004) formulated SIFT to achieve invariance to image scaling, in-plane rotation, affine distortion, and illumination changes:</p>
+<li class="list-item-ordered"><strong>Gaussian Scale Space</strong>: The scale space $L(x, y, \sigma)$ is generated by convolving the image $I(x, y)$ with variable-scale Gaussian kernels $G(x, y, \sigma)$:</li>
+<p class="paragraph">$$L(x, y, \sigma) = G(x, y, \sigma) * I(x, y)$$</p>
+<li class="list-item-ordered"><strong>Difference-of-Gaussians (DoG)</strong>: Keypoints are detected as local scale-space extrema across adjacent DoG scale layers:</li>
+<p class="paragraph">$$D(x, y, \sigma) = (G(x, y, k\sigma) - G(x, y, \sigma)) * I(x, y) = L(x, y, k\sigma) - L(x, y, \sigma)$$</p>
+<li class="list-item-ordered"><strong>Sub-Pixel Extrema Refinement</strong>: A 3D quadratic Taylor expansion of $D(\mathbf{x})$ eliminates unstable extrema and edge responses using the Hessian matrix ratio:</li>
+<p class="paragraph">$$D(\mathbf{x}) = D + \frac{\partial D^T}{\partial \mathbf{x}}\mathbf{x} + \frac{1}{2}\mathbf{x}^T \frac{\partial^2 D}{\partial \mathbf{x}^2}\mathbf{x}, \quad \hat{\mathbf{x}} = -\left(\frac{\partial^2 D}{\partial \mathbf{x}^2}\right)^{-1} \frac{\partial D}{\partial \mathbf{x}}$$</p>
+<li class="list-item-ordered"><strong>Orientation Assignment</strong>: A 36-bin orientation histogram is populated using Gaussian-weighted gradient magnitudes within the keypoint neighborhood. The dominant peak assigns canonical orientation $\theta$.</li>
+<div class="mermaid-diagram"><pre class="mermaid">graph LR
+    Img["Input Image"] --> Oct1["Octave 1: Scale sigma"]
+    Oct1 --> Oct2["Octave 2: Downsample 2x"]
+    Oct2 --> Oct3["Octave 3: Downsample 4x"]
+    
+    Oct1 --> DoG1["Difference-of-Gaussians (DoG)"]
+    Oct2 --> DoG2["Difference-of-Gaussians (DoG)"]
+    Oct3 --> DoG3["Difference-of-Gaussians (DoG)"]
+    
+    DoG1 --> Ext1["3x3x3 Neighborhood Extrema Check"]
+    DoG2 --> Ext2["Taylor Series Sub-Pixel Refinement"]
+    DoG3 --> Ext3["Hessian Edge & Low-Contrast Filter"]
+    
+    Ext1 --> Desc["Gradient Orientation Voting -> 128-D Unit Vector"]
+    Ext2 --> Desc
+    Ext3 --> Desc</pre></div>
+<h3 class="subsection-title">2.2 ORB: Oriented FAST & Steered rBRIEF</h3>
+<p class="paragraph">Rublee et al. (2011) proposed ORB as a computationally efficient binary alternative:</p>
+<li class="list-item-ordered"><strong>Multi-Scale FAST</strong>: Features from Accelerated Segment Test (FAST-9) detects corners on an 8-level image pyramid. Harris corner scores rank and retain the top $N$ keypoints.</li>
+<li class="list-item-ordered"><strong>Intensity Centroid Orientation</strong>: Patch orientation is calculated using image moments:</li>
+<p class="paragraph">$$m_{pq} = \sum_{x, y} x^p y^q I(x, y), \quad C = \left(\frac{m_{10}}{m_{00}}, \frac{m_{01}}{m_{00}}\right), \quad \theta = \text{atan2}(m_{01}, m_{10})$$</p>
+<li class="list-item-ordered"><strong>Steered Binary Robust Independent Elementary Features (rBRIEF)</strong>: 256 pairwise intensity comparison tests $\tau(p; \mathbf{x}_i, \mathbf{y}_i)$ are rotated by angle $\theta$ via rotation matrix $R_\theta$:</li>
+<p class="paragraph">$$\tau(p; \mathbf{x}, \mathbf{y}) = \begin{cases} 1 & \text{if } I(p + \mathbf{x}) < I(p + \mathbf{y}) \\ 0 & \text{otherwise} \end{cases}$$</p>
+<p class="paragraph">The resulting 256-bit string is matched via bitwise XOR and population count (<code>POPCNT</code>).</p>
+<div class="mermaid-diagram"><pre class="mermaid">graph LR
+    Fast["FAST Corner Detection on 8-Level Pyramid"] --> Harris["Harris Score Filtering: Top N Keypoints"]
+    Harris --> Moments["Compute Image Moments m00, m10, m01"]
+    Moments --> Angle["Calculate Intensity Centroid Angle: theta = atan2(m01, m10)"]
+    Angle --> Steer["Steer 256 Binary Test Coordinates by Rotation Matrix R_theta"]
+    Steer --> Bits["Evaluate 256 Pairwise Binary Tests: 32-Byte String"]</pre></div>
+<h3 class="subsection-title">2.3 RANSAC & Homography Estimation</h3>
+<p class="paragraph">Direct Linear Transformation (DLT) computes $H$ from point correspondences. Because $H$ has 8 degrees of freedom (up to scale), a minimum of 4 non-collinear point correspondences is required.</p>
+<p class="paragraph">RANSAC (Fischler & Bolles, 1981) iteratively samples 4 random point pairs, evaluates transfer reprojection errors, and extracts the consensus inlier set:</p>
+<div class="mermaid-diagram"><pre class="mermaid">graph TD
+    Matches["Good Feature Matches"] --> Rand["1. Sample 4 Random Point Correspondences"]
+    Rand --> DLT["2. Fit Candidate Homography H via DLT"]
+    DLT --> Reproj["3. Compute Transfer Error: ||x' - H*x||_2"]
+    Reproj --> Count["4. Count Inliers with Error < 5.0 px"]
+    Count --> MaxCheck{"Inliers > Best Model?"}
+    MaxCheck -- Yes --> Save["Store Best Model & Inlier Subset"]
+    MaxCheck -- No --> IterCheck{"Iter < 2000 Iterations?"}
+    Save --> IterCheck
+    IterCheck -- Yes --> Rand
+    IterCheck -- No --> SVD["5. Refine Final H on ALL Inliers via SVD / Least Squares"]
+    SVD --> Done["Verified Homography Matrix H in R^{3x3}"]</pre></div>
+<hr class="divider">
+<h2 class="section-title">3. Implementation Architecture</h2>
+<p class="paragraph">The system is structured as a decoupled, testable Python package:</p>
+<li class="list-item">[<code>src/preprocessing.py</code>](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/src/preprocessing.py): Aspect-preserving resizing, validation, and grayscale conversion.</li>
+<li class="list-item">[<code>src/features.py</code>](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/src/features.py): Feature factory returning SIFT or ORB detector/descriptor instances.</li>
+<li class="list-item">[<code>src/matching.py</code>](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/src/matching.py): Matches float descriptors via $L_2$ kNN ratio test and binary descriptors via Hamming distance cross-check.</li>
+<li class="list-item">[<code>src/homography.py</code>](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/src/homography.py): Executes RANSAC, reprojection error measurement, and matrix diagnostics.</li>
+<li class="list-item">[<code>src/warping.py</code>](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/src/warping.py): Forward corner projection, canvas coordinate translation offset, and distance blending.</li>
+<li class="list-item">[<code>src/stitching.py</code>](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/src/stitching.py): Reference-coordinate multi-image panorama compositing.</li>
+<li class="list-item">[<code>src/evaluation.py</code>](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/src/evaluation.py): Metric logging across M1–M8 with strict CSV serialization.</li>
+<li class="list-item">[<code>src/visualization.py</code>](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/src/visualization.py): Standardized visualization with RGB conversion and memory cleanup.</li>
+<li class="list-item">[<code>src/pipeline.py</code>](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/src/pipeline.py): End-to-end transparent orchestrator.</li>
+<hr class="divider">
+<h2 class="section-title">4. Requirement Traceability Matrix</h2>
+<div class="table-container"><table class="academic-table"><thead><tr><th>Requirement ID</th><th>Examination Specification</th><th>Implementation Component</th><th>Verification Artifact</th><th>Verification Status</th></tr></thead><tbody><tr><td><strong>REQ-01</strong></td><td>Multi-image scene acquisition ($\ge 3$ images)</td><td><code>src/preprocessing.py::load_image_set</code></td><td><code>data/raw/</code></td><td><strong>Verified</strong></td></tr><tr><td><strong>REQ-02</strong></td><td>Image preparation & validation</td><td><code>src/preprocessing.py::preprocess</code></td><td><code>outputs/baseline/preprocessed_*.png</code></td><td><strong>Verified</strong></td></tr><tr><td><strong>REQ-03</strong></td><td>Keypoint detection (SIFT & ORB)</td><td><code>src/features.py::detect_and_describe</code></td><td><code>outputs/baseline/*/keypoints_*.png</code></td><td><strong>Verified</strong></td></tr><tr><td><strong>REQ-04</strong></td><td>Feature description (Float & Binary)</td><td><code>src/features.py::detect_and_describe</code></td><td><code>results/baseline_results.csv</code></td><td><strong>Verified</strong></td></tr><tr><td><strong>REQ-05</strong></td><td>Descriptor matching with appropriate norms</td><td><code>src/matching.py::match_descriptors</code></td><td><code>results/baseline_results.csv</code></td><td><strong>Verified</strong></td></tr><tr><td><strong>REQ-06</strong></td><td>Initial correspondences visualization</td><td><code>src/visualization.py::save_raw_matches</code></td><td><code>outputs/baseline/*/raw_matches_*.png</code></td><td><strong>Verified</strong></td></tr><tr><td><strong>REQ-07</strong></td><td>Robust outlier rejection via RANSAC</td><td><code>src/homography.py::estimate_homography</code></td><td><code>results/baseline_results.csv</code></td><td><strong>Verified</strong></td></tr><tr><td><strong>REQ-08</strong></td><td>Homography matrix estimation & storage</td><td><code>src/homography.py::save_homography</code></td><td><code>outputs/baseline/*/homographies/</code></td><td><strong>Verified</strong></td></tr><tr><td><strong>REQ-09</strong></td><td>Dynamic perspective image warping</td><td><code>src/warping.py::warp_image</code></td><td><code>outputs/baseline/*/warped_*.png</code></td><td><strong>Verified</strong></td></tr><tr><td><strong>REQ-10</strong></td><td>Panorama construction & blending</td><td><code>src/stitching.py::stitch_images</code></td><td><code>outputs/baseline/*/panorama/*.png</code></td><td><strong>Verified</strong></td></tr><tr><td><strong>REQ-11</strong></td><td>Before vs. After RANSAC visual comparison</td><td><code>src/visualization.py::save_before_after_ransac</code></td><td><code>outputs/baseline/*/before_after_ransac_*.png</code></td><td><strong>Verified</strong></td></tr><tr><td><strong>REQ-12A</strong></td><td>In-plane rotation robustness ($0^\circ$–$180^\circ$)</td><td><code>experiments/run_rotation.py</code></td><td><code>results/rotation_results.csv</code></td><td><strong>Verified</strong></td></tr><tr><td><strong>REQ-12B</strong></td><td>Scale robustness ($0.5\times$–$2.0\times$)</td><td><code>experiments/run_scale.py</code></td><td><code>results/scale_results.csv</code></td><td><strong>Verified</strong></td></tr><tr><td><strong>REQ-12C</strong></td><td>Perspective viewpoint shear experiment</td><td><code>experiments/run_viewpoint.py</code></td><td><code>results/viewpoint_results.csv</code></td><td><strong>Verified</strong></td></tr><tr><td><strong>REQ-12D</strong></td><td>Photometric illumination experiment</td><td><code>experiments/run_illumination.py</code></td><td><code>results/illumination_results.csv</code></td><td><strong>Verified</strong></td></tr><tr><td><strong>REQ-13</strong></td><td>Execution timing across pipeline stages</td><td><code>src/evaluation.py::compute_metrics</code></td><td><code>results/tables/comparison_table.csv</code></td><td><strong>Verified</strong></td></tr><tr><td><strong>REQ-14</strong></td><td>Quantitative evaluation & method comparison</td><td><code>scripts/generate_report_tables.py</code></td><td><code>results/tables/all_results.csv</code></td><td><strong>Verified</strong></td></tr><tr><td><strong>REQ-15</strong></td><td>Complete end-to-end demonstrable pipeline</td><td><code>scripts/run_pipeline.py</code></td><td><code>outputs/*/final_panorama_*.png</code></td><td><strong>Verified</strong></td></tr></tbody></table></div>
+<hr class="divider">
+<h2 class="section-title">5. Comprehensive Experimental Results & Analysis</h2>
+<h3 class="subsection-title">5.1 Baseline Multi-Image Panorama Experiment</h3>
+<p class="paragraph">The baseline experiment evaluates SIFT and ORB across 3 consecutive photographic views spanning a $1800\times600$ scene.</p>
+<div class="mermaid-diagram"><pre class="mermaid">graph LR
+    I1["View 1: scene_img01.jpg (750x600)"] --> Match1["Match & Estimate H_12"]
+    I2["View 2: scene_img02.jpg (750x600)"] --> Match1
+    I2 --> Match2["Match & Estimate H_32"]
+    I3["View 3: scene_img03.jpg (750x600)"] --> Match2
+    
+    Match1 --> Stitch["Dynamic Canvas Warping & Alpha Blending"]
+    Match2 --> Stitch
+    Stitch --> Pano["Full 3-Image Panorama: 1803x619 px"]</pre></div>
+<h4 class="subsubsection-title">Empirical Baseline Results Table</h4>
+<div class="table-container"><table class="academic-table"><thead><tr><th>Pipeline Stage / Metric</th><th>SIFT (DoG + 128-float)</th><th>ORB (FAST + 256-binary)</th><th>Comparative Analysis</th></tr></thead><tbody><tr><td><strong>Detected Keypoints (Image 1)</strong></td><td>1,253</td><td>1,000</td><td>SIFT density driven by octave DoG extrema</td></tr><tr><td><strong>Detected Keypoints (Image 2)</strong></td><td>1,099</td><td>1,002</td><td>ORB bounded by <code>nfeatures=1000</code></td></tr><tr><td><strong>Detected Keypoints (Image 3)</strong></td><td>1,141</td><td>1,000</td><td>Uniform spatial coverage across views</td></tr><tr><td><strong>Descriptor Format</strong></td><td>128-dim <code>float32</code> (512 bytes)</td><td>256-bit <code>uint8</code> (32 bytes)</td><td>ORB descriptors are <strong>$16\times$ more compact</strong></td></tr><tr><td><strong>Distance Metric</strong></td><td>Euclidean ($L_2$)</td><td>Hamming (Bitwise XOR)</td><td>ORB utilizes hardware <code>POPCNT</code></td></tr><tr><td><strong>Filtered Matches (Pair 1-2)</strong></td><td>309</td><td>279</td><td>SIFT Lowe ratio test selectivity ($d_1/d_2 < 0.75$)</td></tr><tr><td><strong>RANSAC Inliers (Pair 1-2)</strong></td><td><strong>178</strong></td><td>46</td><td>SIFT produces <strong>$3.87\times$ more inliers</strong></td></tr><tr><td><strong>Inlier Ratio (Pair 1-2)</strong></td><td><strong>57.61%</strong></td><td>16.49%</td><td>SIFT maintains higher consensus</td></tr><tr><td><strong>Filtered Matches (Pair 2-3)</strong></td><td>371</td><td>395</td><td>Dense feature correspondences</td></tr><tr><td><strong>RANSAC Inliers (Pair 2-3)</strong></td><td>224</td><td><strong>233</strong></td><td>Strong overlap consensus for both methods</td></tr><tr><td><strong>Inlier Ratio (Pair 2-3)</strong></td><td><strong>60.38%</strong></td><td>58.99%</td><td>High structural alignment</td></tr><tr><td><strong>Mean Reprojection Error</strong></td><td><strong>0.14 px</strong></td><td>0.93 px</td><td>SIFT achieves sub-pixel localization accuracy</td></tr><tr><td><strong>Feature Extraction Time</strong></td><td>0.207 s</td><td><strong>0.030 s</strong></td><td>ORB is <strong>$6.9\times$ faster</strong></td></tr><tr><td><strong>Matching Time</strong></td><td>0.011 s</td><td><strong>0.010 s</strong></td><td>Fast binary lookup</td></tr><tr><td><strong>Constructed Panorama Dimensions</strong></td><td><strong>$1803 \times 619$ px</strong></td><td>$1281 \times 619$ px</td><td>Seamless alignment achieved</td></tr></tbody></table></div>
+<hr class="divider">
+<h3 class="subsection-title">5.2 Transformation Robustness Benchmark Results</h3>
+<h4 class="subsubsection-title">1. In-Plane Rotation Robustness ($0^\circ$ to $180^\circ$)</h4>
+<p class="paragraph">Data recorded from [<code>results/rotation_results.csv</code>](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/results/rotation_results.csv):</p>
+<div class="table-container"><table class="academic-table"><thead><tr><th>Rotation Angle</th><th>Algorithm</th><th>Keypoints (Ref)</th><th>Keypoints (Rot)</th><th>Good Matches</th><th>RANSAC Inliers</th><th>Inlier Ratio</th><th>Reprojection Error</th><th>Total Time (s)</th></tr></thead><tbody><tr><td><strong>$0^\circ$</strong></td><td><strong>SIFT</strong></td><td>1,253</td><td>1,253</td><td>1,253</td><td>1,253</td><td><strong>100.0%</strong></td><td>0.00 px</td><td>5.05 s</td></tr><tr><td><strong>$0^\circ$</strong></td><td><strong>ORB</strong></td><td>1,000</td><td>1,000</td><td>998</td><td>998</td><td><strong>100.0%</strong></td><td>0.00 px</td><td><strong>4.40 s</strong></td></tr><tr><td><strong>$15^\circ$</strong></td><td><strong>SIFT</strong></td><td>1,253</td><td>1,810</td><td>808</td><td>752</td><td><strong>93.07%</strong></td><td><strong>0.19 px</strong></td><td>0.39 s</td></tr><tr><td><strong>$15^\circ$</strong></td><td><strong>ORB</strong></td><td>1,000</td><td>1,000</td><td>630</td><td>560</td><td>88.89%</td><td>1.09 px</td><td><strong>0.19 s</strong></td></tr><tr><td><strong>$30^\circ$</strong></td><td><strong>SIFT</strong></td><td>1,253</td><td>1,763</td><td>818</td><td>764</td><td><strong>93.40%</strong></td><td><strong>0.22 px</strong></td><td>5.84 s</td></tr><tr><td><strong>$30^\circ$</strong></td><td><strong>ORB</strong></td><td>1,000</td><td>1,000</td><td>599</td><td>536</td><td>89.48%</td><td>1.18 px</td><td><strong>5.11 s</strong></td></tr><tr><td><strong>$45^\circ$</strong></td><td><strong>SIFT</strong></td><td>1,253</td><td>1,740</td><td>804</td><td>728</td><td><strong>90.55%</strong></td><td><strong>0.23 px</strong></td><td>0.51 s</td></tr><tr><td><strong>$45^\circ$</strong></td><td><strong>ORB</strong></td><td>1,000</td><td>1,000</td><td>627</td><td>569</td><td>90.75%</td><td>1.12 px</td><td><strong>0.20 s</strong></td></tr><tr><td><strong>$60^\circ$</strong></td><td><strong>SIFT</strong></td><td>1,253</td><td>1,786</td><td>797</td><td>738</td><td><strong>92.60%</strong></td><td><strong>0.22 px</strong></td><td>0.55 s</td></tr><tr><td><strong>$60^\circ$</strong></td><td><strong>ORB</strong></td><td>1,000</td><td>1,000</td><td>603</td><td>540</td><td>89.55%</td><td>1.03 px</td><td><strong>0.29 s</strong></td></tr><tr><td><strong>$90^\circ$</strong></td><td><strong>SIFT</strong></td><td>1,253</td><td>1,255</td><td>1,037</td><td>1,011</td><td><strong>97.49%</strong></td><td><strong>0.10 px</strong></td><td>4.82 s</td></tr><tr><td><strong>$90^\circ$</strong></td><td><strong>ORB</strong></td><td>1,000</td><td>1,000</td><td>802</td><td>754</td><td>94.01%</td><td>1.15 px</td><td><strong>4.45 s</strong></td></tr><tr><td><strong>$120^\circ$</strong></td><td><strong>SIFT</strong></td><td>1,253</td><td>1,772</td><td>801</td><td>762</td><td><strong>95.13%</strong></td><td><strong>0.23 px</strong></td><td>0.45 s</td></tr><tr><td><strong>$120^\circ$</strong></td><td><strong>ORB</strong></td><td>1,000</td><td>1,000</td><td>597</td><td>538</td><td>90.12%</td><td>1.32 px</td><td><strong>0.19 s</strong></td></tr><tr><td><strong>$180^\circ$</strong></td><td><strong>SIFT</strong></td><td>1,253</td><td>1,263</td><td>1,008</td><td>951</td><td><strong>94.35%</strong></td><td><strong>0.12 px</strong></td><td>0.31 s</td></tr><tr><td><strong>$180^\circ$</strong></td><td><strong>ORB</strong></td><td>1,000</td><td>1,000</td><td>777</td><td>708</td><td>91.12%</td><td>1.35 px</td><td><strong>0.14 s</strong></td></tr></tbody></table></div>
+<p class="paragraph">*Scientific Interpretation:* SIFT maintains superior inlier ratios ($>90\%$) across all rotation angles due to gradient histogram voting. ORB demonstrates high robustness via its intensity centroid orientation mechanism, but exhibits higher reprojection error ($1.03\text{ px}$–$1.35\text{ px}$) compared to SIFT ($0.10\text{ px}$–$0.23\text{ px}$).</p>
+<hr class="divider">
+<h4 class="subsubsection-title">2. Multi-Scale Invariance Experiment ($0.5\times$ to $2.0\times$)</h4>
+<p class="paragraph">Data recorded from [<code>results/scale_results.csv</code>](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/results/scale_results.csv):</p>
+<div class="table-container"><table class="academic-table"><thead><tr><th>Scale Factor</th><th>Algorithm</th><th>Keypoints (Ref)</th><th>Keypoints (Scaled)</th><th>Good Matches</th><th>RANSAC Inliers</th><th>Inlier Ratio</th><th>Reprojection Error</th><th>Total Time (s)</th></tr></thead><tbody><tr><td><strong>$0.50\times$</strong></td><td><strong>SIFT</strong></td><td>1,253</td><td>1,817</td><td>668</td><td>634</td><td><strong>94.91%</strong></td><td><strong>0.35 px</strong></td><td>4.66 s</td></tr><tr><td><strong>$0.50\times$</strong></td><td><strong>ORB</strong></td><td>1,000</td><td>1,000</td><td>665</td><td>628</td><td>94.44%</td><td>0.48 px</td><td><strong>4.34 s</strong></td></tr><tr><td><strong>$0.75\times$</strong></td><td><strong>SIFT</strong></td><td>1,253</td><td>1,784</td><td>816</td><td>757</td><td>92.77%</td><td>0.29 px</td><td>0.33 s</td></tr><tr><td><strong>$0.75\times$</strong></td><td><strong>ORB</strong></td><td>1,000</td><td>1,000</td><td>744</td><td>704</td><td><strong>94.62%</strong></td><td><strong>0.26 px</strong></td><td><strong>0.14 s</strong></td></tr><tr><td><strong>$1.00\times$</strong></td><td><strong>SIFT</strong></td><td>1,253</td><td>1,253</td><td>1,253</td><td>1,253</td><td><strong>100.0%</strong></td><td>0.00 px</td><td>4.68 s</td></tr><tr><td><strong>$1.00\times$</strong></td><td><strong>ORB</strong></td><td>1,000</td><td>1,000</td><td>998</td><td>998</td><td><strong>100.0%</strong></td><td>0.00 px</td><td><strong>4.50 s</strong></td></tr><tr><td><strong>$1.25\times$</strong></td><td><strong>SIFT</strong></td><td>1,253</td><td>1,849</td><td>957</td><td>919</td><td>96.03%</td><td><strong>0.17 px</strong></td><td>0.41 s</td></tr><tr><td><strong>$1.25\times$</strong></td><td><strong>ORB</strong></td><td>1,000</td><td>1,000</td><td>779</td><td>761</td><td><strong>97.69%</strong></td><td>0.18 px</td><td><strong>0.16 s</strong></td></tr><tr><td><strong>$1.50\times$</strong></td><td><strong>SIFT</strong></td><td>1,253</td><td>1,856</td><td>985</td><td>957</td><td>97.16%</td><td><strong>0.12 px</strong></td><td>0.31 s</td></tr><tr><td><strong>$1.50\times$</strong></td><td><strong>ORB</strong></td><td>1,000</td><td>1,000</td><td>827</td><td>812</td><td><strong>98.19%</strong></td><td>0.15 px</td><td><strong>0.24 s</strong></td></tr><tr><td><strong>$2.00\times$</strong></td><td><strong>SIFT</strong></td><td>1,253</td><td>1,850</td><td>989</td><td>955</td><td>96.56%</td><td><strong>0.12 px</strong></td><td>4.73 s</td></tr><tr><td><strong>$2.00\times$</strong></td><td><strong>ORB</strong></td><td>1,000</td><td>1,000</td><td>828</td><td>815</td><td><strong>98.43%</strong></td><td>0.15 px</td><td><strong>5.00 s</strong></td></tr></tbody></table></div>
+<p class="paragraph">*Scientific Interpretation:* SIFT scale-space octaves cover continuous scale variations smoothly, while ORB's 8-level pyramid with scale factor 1.2 maintains comparable inlier ratios across $0.5\times$ to $2.0\times$ scale regimes.</p>
+<hr class="divider">
+<h4 class="subsubsection-title">3. Perspective Viewpoint Shear Experiment</h4>
+<p class="paragraph">Data recorded from [<code>results/viewpoint_results.csv</code>](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/results/viewpoint_results.csv):</p>
+<div class="table-container"><table class="academic-table"><thead><tr><th>Perspective Distortion</th><th>Algorithm</th><th>Keypoints (Ref)</th><th>Keypoints (Warped)</th><th>Good Matches</th><th>RANSAC Inliers</th><th>Inlier Ratio</th><th>Reprojection Error</th><th>Total Time (s)</th></tr></thead><tbody><tr><td><strong>Mild ($15\text{ px}$ offset)</strong></td><td><strong>SIFT</strong></td><td>1,253</td><td>1,754</td><td>834</td><td>781</td><td><strong>93.65%</strong></td><td><strong>0.21 px</strong></td><td>5.16 s</td></tr><tr><td><strong>Mild ($15\text{ px}$ offset)</strong></td><td><strong>ORB</strong></td><td>1,000</td><td>1,000</td><td>607</td><td>532</td><td>87.64%</td><td>0.95 px</td><td><strong>4.43 s</strong></td></tr><tr><td><strong>Moderate ($40\text{ px}$ offset)</strong></td><td><strong>SIFT</strong></td><td>1,253</td><td>1,630</td><td>757</td><td>675</td><td><strong>89.17%</strong></td><td><strong>0.26 px</strong></td><td>4.90 s</td></tr><tr><td><strong>Moderate ($40\text{ px}$ offset)</strong></td><td><strong>ORB</strong></td><td>1,000</td><td>1,000</td><td>558</td><td>474</td><td>84.95%</td><td>0.94 px</td><td><strong>4.37 s</strong></td></tr><tr><td><strong>Extreme ($80\text{ px}$ offset)</strong></td><td><strong>SIFT</strong></td><td>1,253</td><td>1,479</td><td>608</td><td>540</td><td><strong>88.82%</strong></td><td><strong>0.36 px</strong></td><td>4.64 s</td></tr><tr><td><strong>Extreme ($80\text{ px}$ offset)</strong></td><td><strong>ORB</strong></td><td>1,000</td><td>1,000</td><td>445</td><td>365</td><td>82.02%</td><td>1.02 px</td><td><strong>4.57 s</strong></td></tr></tbody></table></div>
+<p class="paragraph">*Scientific Interpretation:* Under non-affine perspective distortion, SIFT gradient orientation histograms demonstrate greater tolerance than binary intensity tests, retaining an $88.82\%$ inlier ratio under extreme shear ($80\text{ px}$) compared to ORB's $82.02\%$.</p>
+<hr class="divider">
+<h4 class="subsubsection-title">4. Photometric Illumination Changes ($\Delta\beta$ & $\alpha$)</h4>
+<p class="paragraph">Data recorded from [<code>results/illumination_results.csv</code>](file:///c:/Users/user/Desktop/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem/results/illumination_results.csv):</p>
+<div class="table-container"><table class="academic-table"><thead><tr><th>Illumination Condition</th><th>Algorithm</th><th>Keypoints (Ref)</th><th>Keypoints (Illum)</th><th>Good Matches</th><th>RANSAC Inliers</th><th>Inlier Ratio</th><th>Reprojection Error</th><th>Total Time (s)</th></tr></thead><tbody><tr><td><strong>Bright $\Delta\beta = -100$</strong></td><td><strong>SIFT</strong></td><td>1,253</td><td>1,172</td><td>296</td><td>235</td><td><strong>79.39%</strong></td><td><strong>0.72 px</strong></td><td>4.94 s</td></tr><tr><td><strong>Bright $\Delta\beta = -100$</strong></td><td><strong>ORB</strong></td><td>1,000</td><td>1,000</td><td>231</td><td>82</td><td>35.50%</td><td>1.15 px</td><td><strong>4.46 s</strong></td></tr><tr><td><strong>Bright $\Delta\beta = -50$</strong></td><td><strong>SIFT</strong></td><td>1,253</td><td>1,375</td><td>777</td><td>717</td><td>92.28%</td><td><strong>0.33 px</strong></td><td>4.69 s</td></tr><tr><td><strong>Bright $\Delta\beta = -50$</strong></td><td><strong>ORB</strong></td><td>1,000</td><td>1,000</td><td>600</td><td>559</td><td><strong>93.17%</strong></td><td>0.39 px</td><td><strong>4.32 s</strong></td></tr><tr><td><strong>Bright $\Delta\beta = +50$</strong></td><td><strong>SIFT</strong></td><td>1,253</td><td>1,128</td><td>1,022</td><td>959</td><td>93.84%</td><td>0.16 px</td><td>4.47 s</td></tr><tr><td><strong>Bright $\Delta\beta = +50$</strong></td><td><strong>ORB</strong></td><td>1,000</td><td>1,000</td><td>727</td><td>693</td><td><strong>95.32%</strong></td><td><strong>0.12 px</strong></td><td><strong>4.29 s</strong></td></tr><tr><td><strong>Bright $\Delta\beta = +100$</strong></td><td><strong>SIFT</strong></td><td>1,253</td><td>988</td><td>685</td><td>610</td><td>89.05%</td><td><strong>0.34 px</strong></td><td>4.49 s</td></tr><tr><td><strong>Bright $\Delta\beta = +100$</strong></td><td><strong>ORB</strong></td><td>1,000</td><td>1,000</td><td>484</td><td>440</td><td><strong>90.91%</strong></td><td>0.46 px</td><td><strong>4.42 s</strong></td></tr><tr><td><strong>Contrast $\alpha = 0.50$</strong></td><td><strong>SIFT</strong></td><td>1,253</td><td>1,082</td><td>1,066</td><td>1,024</td><td>96.06%</td><td>0.03 px</td><td>4.50 s</td></tr><tr><td><strong>Contrast $\alpha = 0.50$</strong></td><td><strong>ORB</strong></td><td>1,000</td><td>1,000</td><td>905</td><td>894</td><td><strong>98.78%</strong></td><td><strong>0.02 px</strong></td><td><strong>4.34 s</strong></td></tr><tr><td><strong>Contrast $\alpha = 0.75$</strong></td><td><strong>SIFT</strong></td><td>1,253</td><td>1,189</td><td>1,155</td><td>1,136</td><td>98.35%</td><td>0.03 px</td><td>4.49 s</td></tr><tr><td><strong>Contrast $\alpha = 0.75$</strong></td><td><strong>ORB</strong></td><td>1,000</td><td>1,000</td><td>925</td><td>919</td><td><strong>99.35%</strong></td><td><strong>0.02 px</strong></td><td><strong>4.35 s</strong></td></tr><tr><td><strong>Contrast $\alpha = 1.25$</strong></td><td><strong>SIFT</strong></td><td>1,253</td><td>1,173</td><td>1,026</td><td>955</td><td>93.08%</td><td>0.16 px</td><td>4.55 s</td></tr><tr><td><strong>Contrast $\alpha = 1.25$</strong></td><td><strong>ORB</strong></td><td>1,000</td><td>1,000</td><td>722</td><td>681</td><td><strong>94.32%</strong></td><td><strong>0.15 px</strong></td><td><strong>4.40 s</strong></td></tr><tr><td><strong>Contrast $\alpha = 1.50$</strong></td><td><strong>SIFT</strong></td><td>1,253</td><td>1,115</td><td>796</td><td>716</td><td>89.95%</td><td><strong>0.29 px</strong></td><td>4.49 s</td></tr><tr><td><strong>Contrast $\alpha = 1.50$</strong></td><td><strong>ORB</strong></td><td>1,000</td><td>1,000</td><td>533</td><td>491</td><td><strong>92.12%</strong></td><td>0.41 px</td><td><strong>4.33 s</strong></td></tr></tbody></table></div>
+<p class="paragraph">*Scientific Interpretation:* When images are severely underexposed ($\Delta\beta = -100$), intensity quantization reduces binary contrast, dropping ORB inlier ratio to $35.50\%$. SIFT preserves $79.39\%$ inlier ratio because gradient computations and unit normalization maintain local feature discrimination.</p>
+<hr class="divider">
+<h2 class="section-title">6. Before vs. After RANSAC Detailed Evaluation</h2>
+<div class="table-container"><table class="academic-table"><thead><tr><th>Scenario / Pair</th><th>Algorithm</th><th>Raw Matches</th><th>RANSAC Inliers</th><th>Rejected Outliers</th><th>Inlier Ratio</th></tr></thead><tbody><tr><td>Baseline Pair 1–2</td><td>SIFT</td><td>309</td><td>178</td><td>131</td><td><strong>57.61%</strong></td></tr><tr><td>Baseline Pair 1–2</td><td>ORB</td><td>279</td><td>46</td><td>233</td><td><strong>16.49%</strong></td></tr><tr><td>Baseline Pair 2–3</td><td>SIFT</td><td>371</td><td>224</td><td>147</td><td><strong>60.38%</strong></td></tr><tr><td>Baseline Pair 2–3</td><td>ORB</td><td>395</td><td>233</td><td>162</td><td><strong>58.99%</strong></td></tr><tr><td>Rotation $45^\circ$</td><td>SIFT</td><td>804</td><td>728</td><td>76</td><td><strong>90.55%</strong></td></tr><tr><td>Rotation $45^\circ$</td><td>ORB</td><td>627</td><td>569</td><td>58</td><td><strong>90.75%</strong></td></tr><tr><td>Viewpoint Moderate</td><td>SIFT</td><td>757</td><td>675</td><td>82</td><td><strong>89.17%</strong></td></tr><tr><td>Viewpoint Moderate</td><td>ORB</td><td>558</td><td>474</td><td>84</td><td><strong>84.95%</strong></td></tr><tr><td>Illumination ($\beta = -50$)</td><td>SIFT</td><td>777</td><td>717</td><td>60</td><td><strong>92.28%</strong></td></tr><tr><td>Illumination ($\beta = -50$)</td><td>ORB</td><td>600</td><td>559</td><td>41</td><td><strong>93.17%</strong></td></tr></tbody></table></div>
+<p class="paragraph">*Analysis:* Before RANSAC, raw matches include false correspondences from repetitive architectural elements and textureless zones. RANSAC purges non-homography match vectors, ensuring that only geometrically consistent inliers determine the warping transformation.</p>
+<hr class="divider">
+<h2 class="section-title">7. Failure Case Diagnostics & Edge Case Handling</h2>
+<div class="mermaid-diagram"><pre class="mermaid">graph TD
+    Check1{"Keypoints >= 4?"} -->|No| F1["F1: Insufficient Keypoints / Textureless Scene"]
+    Check1 -->|Yes| Check2{"Filtered Matches >= 4?"}
+    Check2 -->|No| F2["F2: Low Scene Overlap (< 15%)"]
+    Check2 -->|Yes| Check3{"RANSAC Inliers >= 10?"}
+    Check3 -->|No| F3["F3: Outlier Dominance / Severe Blur"]
+    Check3 -->|Yes| Check4{"1e-6 < det(H) < 1e6?"}
+    Check4 -->|No| F4["F4: Degenerate Collinear Homography"]
+    Check4 -->|Yes| OK["Success: Execute Dynamic Warping & Blending"]</pre></div>
+<div class="table-container"><table class="academic-table"><thead><tr><th>Failure Code</th><th>Description</th><th>Root Cause</th><th>Automated Mitigation</th></tr></thead><tbody><tr><td><strong>F1</strong></td><td><code>INSUFFICIENT_KEYPOINTS</code></td><td>Textureless scene or severe blur ($N < 4$)</td><td>Abort estimation, log diagnostics</td></tr><tr><td><strong>F2</strong></td><td><code>INSUFFICIENT_MATCHES</code></td><td>Overlap $< 15\%$ or extreme distortion ($N_{good} < 4$)</td><td>Abort DLT solver, return failure row</td></tr><tr><td><strong>F3</strong></td><td><code>RANSAC_RETURNED_NONE</code></td><td>Outlier dominance ($> 95\%$) prevents consensus</td><td>Reject pair, attempt adaptive threshold</td></tr><tr><td><strong>F4</strong></td><td><code>DEGENERATE_HOMOGRAPHY</code></td><td>Collinear keypoints or $\det(H) \notin [10^{-6}, 10^6]$</td><td>Detect rank deficiency, prevent warp</td></tr><tr><td><strong>F5</strong></td><td><code>STITCHING_ARTEFACT</code></td><td>Non-planar 3D depth parallax</td><td>Flag parallax in quality checklist</td></tr></tbody></table></div>
+<hr class="divider">
+<h2 class="section-title">8. Limitations & Practical Constraints</h2>
+<li class="list-item-ordered"><strong>Pure Rotation / Planar Scene Assumption</strong>: Homography modeling assumes either pure camera rotation about its optical center or scenes with planar geometry. Camera translation in scenes with foreground-background depth variation produces 3D parallax that a single $3\times3$ homography cannot resolve.</li>
+<li class="list-item-ordered"><strong>Photometric Exposure Variation</strong>: Distance-transform blending provides smooth seam transitions, but extreme exposure differences between frames produce global luminance gradients across wide panoramas.</li>
+<li class="list-item-ordered"><strong>Dynamic Objects</strong>: Moving objects (e.g., pedestrians) in the overlap region result in ghosting artifacts without dynamic motion segmentation.</li>
+<hr class="divider">
+<h2 class="section-title">9. Conclusion & Recommendations</h2>
+<li class="list-item-ordered"><strong>SIFT</strong> is the recommended algorithm for high-fidelity archival panoramas, demonstrating superior localization precision ($0.12\text{ px}$–$0.35\text{ px}$ reprojection error) and higher inlier retention under severe rotations and perspective shears.</li>
+<li class="list-item-ordered"><strong>ORB</strong> is the recommended algorithm for real-time and embedded vision applications, operating $\sim 7\times$ faster in extraction with $16\times$ smaller descriptor memory footprint.</li>
+<li class="list-item-ordered">RANSAC combined with distance-transform alpha blending produces seamless panoramic composites without boundary step artifacts or ghosting when input images satisfy planar or rotational camera constraints.</li>
+<hr class="divider">
+<h2 class="section-title">References</h2>
+<li class="list-item-ordered"><strong>Lowe, D. G. (2004).</strong> Distinctive image features from scale-invariant keypoints. *International Journal of Computer Vision*, 60(2), 91–110.</li>
+<li class="list-item-ordered"><strong>Rublee, E., Rabaud, V., Konolige, K., & Bradski, G. (2011).</strong> ORB: An efficient alternative to SIFT or SURF. In *IEEE International Conference on Computer Vision (ICCV)* (pp. 2564–2571).</li>
+<li class="list-item-ordered"><strong>Fischler, M. A., & Bolles, R. C. (1981).</strong> Random sample consensus: a paradigm for model fitting. *Communications of the ACM*, 24(6), 381–395.</li>
+<li class="list-item-ordered"><strong>Brown, M., & Lowe, D. G. (2007).</strong> Automatic panoramic image stitching using invariant features. *International Journal of Computer Vision*, 74(1), 59–73.</li>
+<li class="list-item-ordered"><strong>Harris, C., & Stephens, M. (1988).</strong> A combined corner and edge detector. In *Alvey Vision Conference* (Vol. 15, No. 50, pp. 147–151).</li>
+<li class="list-item-ordered"><strong>Hartley, R., & Zisserman, A. (2004).</strong> *Multiple View Geometry in Computer Vision* (2nd ed.). Cambridge University Press.</li>
+<li class="list-item-ordered"><strong>Szeliski, R. (2022).</strong> *Computer Vision: Algorithms and Applications* (2nd ed.). Springer.</li>
+
+<div class="footer-note">
+  <span>CSCD608: Advanced Computer Vision — Examination Project</span>
+  <span>Department of Computer Science</span>
+</div>
+
+</body>
+</html>

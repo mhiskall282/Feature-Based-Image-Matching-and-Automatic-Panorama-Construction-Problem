@@ -111,6 +111,23 @@ def documentation():
     return render_template("docs.html")
 
 
+@app.route("/report.pdf")
+@app.route("/download/report")
+def download_report_pdf():
+    """Serve the academic project examination report PDF."""
+    report_dir = Path(__file__).parent.parent / "report"
+    return send_from_directory(report_dir, "CSCD608_Examination_Project_Report.pdf", as_attachment=False)
+
+
+@app.route("/documentation.pdf")
+@app.route("/docs.pdf")
+@app.route("/download/docs")
+def download_docs_pdf():
+    """Serve the technical documentation manual PDF."""
+    docs_dir = Path(__file__).parent.parent / "docs"
+    return send_from_directory(docs_dir, "CSCD608_Technical_Documentation_Manual.pdf", as_attachment=False)
+
+
 @app.route("/outputs/<path:filename>")
 def serve_outputs(filename):
     """Serve visual outputs, panoramas, and comparison artifacts."""

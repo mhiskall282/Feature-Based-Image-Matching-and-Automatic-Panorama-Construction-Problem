@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CSCD608: Advanced Computer Vision — Technical Documentation & User Manual</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+  @page {
+    size: A4;
+    margin: 20mm 18mm 20mm 18mm;
+    @bottom-right {
+      content: counter(page);
+    }
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: #1e293b;
+    background-color: #ffffff;
+    line-height: 1.6;
+    font-size: 10pt;
+  }
+
+  .header-cover {
+    border-bottom: 3px solid #2563eb;
+    padding-bottom: 1.25rem;
+    margin-bottom: 2rem;
+  }
+
+  .institution {
+    font-size: 11pt;
+    font-weight: 800;
+    color: #2563eb;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .doc-title {
+    font-size: 18pt;
+    font-weight: 800;
+    color: #0f172a;
+    margin-top: 0.4rem;
+    margin-bottom: 0.4rem;
+    line-height: 1.25;
+  }
+
+  .doc-subtitle {
+    font-size: 11pt;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 0.8rem;
+  }
+
+  .meta-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 0.6rem 0.8rem;
+    font-size: 8.5pt;
+  }
+
+  .meta-item strong {
+    color: #0f172a;
+  }
+
+  .section-title {
+    font-size: 13pt;
+    font-weight: 800;
+    color: #0f172a;
+    border-bottom: 1.5px solid #cbd5e1;
+    padding-bottom: 0.3rem;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    page-break-after: avoid;
+  }
+
+  .subsection-title {
+    font-size: 11pt;
+    font-weight: 700;
+    color: #1e40af;
+    margin-top: 1.1rem;
+    margin-bottom: 0.45rem;
+    page-break-after: avoid;
+  }
+
+  .subsubsection-title {
+    font-size: 10pt;
+    font-weight: 700;
+    color: #334155;
+    margin-top: 0.8rem;
+    margin-bottom: 0.35rem;
+    page-break-after: avoid;
+  }
+
+  .paragraph {
+    margin-bottom: 0.75rem;
+    text-align: justify;
+  }
+
+  .list-item, .list-item-ordered {
+    margin-left: 1.4rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .table-container {
+    margin: 1rem 0;
+    page-break-inside: avoid;
+  }
+
+  .academic-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 8.5pt;
+  }
+
+  .academic-table th {
+    background-color: #f1f5f9;
+    color: #0f172a;
+    font-weight: 700;
+    border: 1px solid #cbd5e1;
+    padding: 6px 8px;
+    text-align: left;
+  }
+
+  .academic-table td {
+    border: 1px solid #e2e8f0;
+    padding: 5px 8px;
+    color: #334155;
+  }
+
+  .academic-table tr:nth-child(even) {
+    background-color: #f8fafc;
+  }
+
+  .code-block {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-left: 3px solid #3b82f6;
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-family: 'JetBrains Mono', Consolas, monospace;
+    font-size: 8pt;
+    margin: 0.8rem 0;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+    color: #0f172a;
+  }
+
+  code {
+    font-family: 'JetBrains Mono', Consolas, monospace;
+    background: #f1f5f9;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-size: 8.5pt;
+    color: #0f172a;
+  }
+
+  .divider {
+    border: 0;
+    height: 1px;
+    background: #e2e8f0;
+    margin: 1.5rem 0;
+  }
+
+  .callout {
+    border-left: 4px solid #3b82f6;
+    background: #eff6ff;
+    padding: 0.6rem 0.9rem;
+    border-radius: 0 6px 6px 0;
+    margin: 0.9rem 0;
+    page-break-inside: avoid;
+  }
+
+  .callout-text {
+    font-size: 9pt;
+    color: #1e3a8a;
+  }
+
+  .footer-note {
+    margin-top: 2rem;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 0.5rem;
+    font-size: 8pt;
+    color: #64748b;
+    display: flex;
+    justify-content: space-between;
+  }
+</style>
+<!-- MathJax for rendering LaTeX math formulas cleanly -->
+<script>
+  window.MathJax = {
+    tex: {
+      inlineMath: [['$', '$']],
+      displayMath: [['$$', '$$']]
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+
+<div class="header-cover">
+  <div class="institution">University of Ghana • Department of Computer Science</div>
+  <h1 class="doc-title">CSCD608: Advanced Computer Vision — Technical Documentation & User Manual</h1>
+  <div class="doc-subtitle">Complete A-to-Z Technical Reference, Geometry Formulations, and API Guide</div>
+  <div class="meta-grid">
+    <div class="meta-item"><strong>Course:</strong> CSCD608: Advanced Computer Vision (3 Credits)</div>
+    <div class="meta-item"><strong>Examination:</strong> 2025/2026 Second Semester</div>
+    <div class="meta-item"><strong>Question:</strong> Question 1 — Feature Matching & Panoramic Stitching</div>
+    <div class="meta-item"><strong>Author:</strong> Postgraduate Candidate (MPhil / MSc Computer Science)</div>
+  </div>
+</div>
+
+<p class="paragraph">Welcome to the comprehensive technical documentation for the <strong>Feature-Based Image Matching and Automatic Panorama Construction System</strong> developed for the CSCD608 postgraduate examination.</p>
+<hr class="divider">
+<h2 class="section-title">📑 Table of Contents</h2>
+<h3 class="subsection-title">Part I: Getting Started</h3>
+<li class="list-item-ordered">[Project Mandate & Scope](#1-project-mandate--scope)</li>
+<li class="list-item-ordered">[Examination Requirements Traceability Matrix](#2-examination-requirements-traceability-matrix)</li>
+<li class="list-item-ordered">[Installation & Quickstart Guide](#3-installation--quickstart-guide)</li>
+<h3 class="subsection-title">Part II: Computer Vision Mathematics & Pipeline</h3>
+<li class="list-item-ordered">[Projective Geometry & 8-DOF Homography](#4-projective-geometry--8-dof-homography)</li>
+<li class="list-item-ordered">[Image Preprocessing & Normalization Protocol](#5-image-preprocessing--normalization-protocol)</li>
+<li class="list-item-ordered">[Feature Detection: SIFT (DoG) vs. ORB (FAST)](#6-feature-detection-sift-dog-vs-orb-fast)</li>
+<li class="list-item-ordered">[Feature Description: Gradient Histograms vs. Steered rBRIEF](#7-feature-description-gradient-histograms-vs-steered-rbrief)</li>
+<li class="list-item-ordered">[Descriptor Matching & Lowe's Ratio Test](#8-descriptor-matching--lowes-ratio-test)</li>
+<li class="list-item-ordered">[Robust Geometric Estimation via RANSAC](#9-robust-geometric-estimation-via-ransac)</li>
+<li class="list-item-ordered">[Homography Matrix Diagnostics & Degeneracy Checks](#10-homography-matrix-diagnostics--degeneracy-checks)</li>
+<li class="list-item-ordered">[Dynamic Canvas Geometry & Perspective Warping](#11-dynamic-canvas-geometry--perspective-warping)</li>
+<li class="list-item-ordered">[Multi-Image Stitching & Distance-Weighted Alpha Blending](#12-multi-image-stitching--distance-weighted-alpha-blending)</li>
+<h3 class="subsection-title">Part III: Empirical Research & Benchmarks</h3>
+<li class="list-item-ordered">[Quantitative 8-Metric Evaluation Framework](#13-quantitative-8-metric-evaluation-framework)</li>
+<li class="list-item-ordered">[5 Research Benchmark Experiments & Comparative Analysis](#14-5-research-benchmark-experiments--comparative-analysis)</li>
+<li class="list-item-ordered">[Before vs. After RANSAC In-Depth Analysis](#15-before-vs-after-ransac-in-depth-analysis)</li>
+<h3 class="subsection-title">Part IV: Diagnostics & Recovery</h3>
+<li class="list-item-ordered">[Failure Diagnostics Taxonomy (F1–F5)](#16-failure-diagnostics-taxonomy-f1f5)</li>
+<h3 class="subsection-title">Part V: Application Interfaces & User Manual</h3>
+<li class="list-item-ordered">[Interactive Web Dashboard Manual](#17-interactive-web-dashboard-manual)</li>
+<li class="list-item-ordered">[CLI Utilities & Automated Benchmark Runners](#18-cli-utilities--automated-benchmark-runners)</li>
+<li class="list-item-ordered">[Google Colab Integration Guide](#19-google-colab-integration-guide)</li>
+<h3 class="subsection-title">Part VI: Production Cloud Deployment & Verification</h3>
+<li class="list-item-ordered">[Cloud Deployment Guide (Render, Vercel, Docker)](#20-cloud-deployment-guide-render-vercel-docker)</li>
+<li class="list-item-ordered">[Pytest Test Suite & Validation Report](#21-pytest-test-suite--validation-report)</li>
+<li class="list-item-ordered">[Academic References](#22-academic-references)</li>
+<hr class="divider">
+<h2 class="section-title">Part I: Getting Started</h2>
+<h3 class="subsection-title">1. Project Mandate & Scope</h3>
+<li class="list-item"><strong>Degree:</strong> MPhil / MSc Computer Science</li>
+<li class="list-item"><strong>Course:</strong> CSCD608: Advanced Computer Vision (3 Credits)</li>
+<li class="list-item"><strong>Semester:</strong> Second Semester Examinations 2025/2026</li>
+<li class="list-item"><strong>Question:</strong> Question 1 — Feature-Based Image Matching and Automatic Panorama Construction</li>
+<p class="paragraph">The goal of this system is to identify corresponding visual regions across two or more overlapping planar or perspective images and automatically composite them into a seamless panorama. The pipeline is engineered entirely using classical computer vision primitives without black-box stitching functions (<code>cv2.Stitcher_create</code>) or deep learning models.</p>
+<h3 class="subsection-title">2. Examination Requirements Traceability Matrix</h3>
+<div class="table-container"><table class="academic-table"><thead><tr><th>Task ID</th><th>Examination Specification</th><th>Implementation Module</th><th>Automated Test / Artifact</th><th>Verification Status</th></tr></thead><tbody><tr><td><strong>REQ-01</strong></td><td>Multi-image scene acquisition ($\ge 3$ views)</td><td><code>src/preprocessing.py</code></td><td><code>data/raw/</code></td><td><strong>Verified</strong></td></tr><tr><td><strong>REQ-02</strong></td><td>Aspect-preserving preprocessing & validation</td><td><code>src/preprocessing.py</code></td><td><code>outputs/baseline/preprocessed_*.png</code></td><td><strong>Verified</strong></td></tr><tr><td><strong>REQ-03</strong></td><td>Keypoint detection (SIFT & ORB)</td><td><code>src/features.py</code></td><td><code>tests/test_features.py</code></td><td><strong>Verified</strong></td></tr><tr><td><strong>REQ-04</strong></td><td>Feature description (Float32 & Binary)</td><td><code>src/features.py</code></td><td><code>tests/test_features.py</code></td><td><strong>Verified</strong></td></tr><tr><td><strong>REQ-05</strong></td><td>Descriptor matching with appropriate norms</td><td><code>src/matching.py</code></td><td><code>tests/test_matching.py</code></td><td><strong>Verified</strong></td></tr><tr><td><strong>REQ-06</strong></td><td>Initial correspondences visualization</td><td><code>src/visualization.py</code></td><td><code>outputs/*/raw_matches_*.png</code></td><td><strong>Verified</strong></td></tr><tr><td><strong>REQ-07</strong></td><td>RANSAC outlier rejection (4-pt DLT consensus)</td><td><code>src/homography.py</code></td><td><code>tests/test_homography.py</code></td><td><strong>Verified</strong></td></tr><tr><td><strong>REQ-08</strong></td><td>$3\times3$ Homography matrix estimation & storage</td><td><code>src/homography.py</code></td><td><code>outputs/*/homographies/</code></td><td><strong>Verified</strong></td></tr><tr><td><strong>REQ-09</strong></td><td>Perspective image warping & coordinate shift</td><td><code>src/warping.py</code></td><td><code>tests/test_warping.py</code></td><td><strong>Verified</strong></td></tr><tr><td><strong>REQ-10</strong></td><td>Multi-image panorama stitching & blending</td><td><code>src/stitching.py</code></td><td><code>outputs/*/panorama/</code></td><td><strong>Verified</strong></td></tr><tr><td><strong>REQ-11</strong></td><td>Compare matches Before vs. After RANSAC</td><td><code>src/visualization.py</code></td><td><code>outputs/*/before_after_*.png</code></td><td><strong>Verified</strong></td></tr><tr><td><strong>REQ-12A</strong></td><td>In-plane rotation stress test ($0^\circ$–$180^\circ$)</td><td><code>experiments/run_rotation.py</code></td><td><code>results/rotation_results.csv</code></td><td><strong>Verified</strong></td></tr><tr><td><strong>REQ-12B</strong></td><td>Multi-scale stress test ($0.5\times$–$2.0\times$)</td><td><code>experiments/run_scale.py</code></td><td><code>results/scale_results.csv</code></td><td><strong>Verified</strong></td></tr><tr><td><strong>REQ-12C</strong></td><td>Perspective viewpoint shear stress test</td><td><code>experiments/run_viewpoint.py</code></td><td><code>results/viewpoint_results.csv</code></td><td><strong>Verified</strong></td></tr><tr><td><strong>REQ-12D</strong></td><td>Photometric illumination stress test</td><td><code>experiments/run_illumination.py</code></td><td><code>results/illumination_results.csv</code></td><td><strong>Verified</strong></td></tr><tr><td><strong>REQ-13</strong></td><td>Stage-wise execution timing profiling</td><td><code>src/evaluation.py</code></td><td><code>results/tables/all_results.csv</code></td><td><strong>Verified</strong></td></tr><tr><td><strong>REQ-14</strong></td><td>Quantitative evaluation of SIFT vs. ORB</td><td><code>scripts/generate_report_tables.py</code></td><td><code>results/tables/comparison_table.csv</code></td><td><strong>Verified</strong></td></tr><tr><td><strong>REQ-15</strong></td><td>Complete demonstrable CLI, App & Colab pipeline</td><td><code>scripts/run_pipeline.py</code>, <code>app/server.py</code></td><td><code>tests/test_pipeline.py</code></td><td><strong>Verified</strong></td></tr></tbody></table></div>
+<h3 class="subsection-title">3. Installation & Quickstart Guide</h3>
+<pre class="code-block"><code># 1. Clone repository
+git clone https://github.com/mhiskall282/Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem.git
+cd Feature-Based-Image-Matching-and-Automatic-Panorama-Construction-Problem
+
+# 2. Create and activate virtual environment
+python -m venv venv
+# Windows: .\venv\Scripts\activate
+# Linux/macOS: source venv/bin/activate
+
+# 3. Install requirements
+pip install -r requirements.txt
+
+# 4. Launch interactive dashboard
+python run_app.py</code></pre>
+<hr class="divider">
+<h2 class="section-title">Part II: Computer Vision Mathematics & Pipeline</h2>
+<h3 class="subsection-title">4. Projective Geometry & 8-DOF Homography</h3>
+<p class="paragraph">A homography $H \in \mathbb{R}^{3\times3}$ maps points between two projective image planes:</p>
+<p class="paragraph">$$\begin{bmatrix} x' \\ y' \\ 1 \end{bmatrix} \sim \begin{bmatrix} h_{11} & h_{12} & h_{13} \\ h_{21} & h_{22} & h_{23} \\ h_{31} & h_{32} & h_{33} \end{bmatrix} \begin{bmatrix} x \\ y \\ 1 \end{bmatrix}$$</p>
+<p class="paragraph">In inhomogeneous Cartesian coordinates:</p>
+<p class="paragraph">$$x' = \frac{h_{11}x + h_{12}y + h_{13}}{h_{31}x + h_{32}y + h_{33}}, \quad y' = \frac{h_{21}x + h_{22}y + h_{23}}{h_{31}x + h_{32}y + h_{33}}$$</p>
+<p class="paragraph">Because $H$ is defined up to scale, it has <strong>8 degrees of freedom (DOF)</strong>. The Direct Linear Transformation (DLT) sets up the algebraic constraint $A\mathbf{h} = \mathbf{0}$, which is solved via SVD over consensus inliers.</p>
+<h3 class="subsection-title">5. Image Preprocessing & Normalization Protocol</h3>
+<li class="list-item-ordered">Aspect-preserving resizing (maximum dimension constrained to 1280 px).</li>
+<li class="list-item-ordered">Grayscale conversion via ITU-R BT.601 standard ($Y = 0.299R + 0.587G + 0.114B$).</li>
+<li class="list-item-ordered">Image buffer integrity validation.</li>
+<h3 class="subsection-title">6. Feature Detection: SIFT (DoG) vs. ORB (FAST)</h3>
+<li class="list-item"><strong>SIFT</strong>: Difference-of-Gaussians (DoG) extrema detection across 3 octaves with 3 scale layers per octave. Sub-pixel quadratic Taylor expansion refinement eliminates low-contrast points and unstable edge responses.</li>
+<li class="list-item"><strong>ORB</strong>: FAST-9 corner detector across an 8-level image pyramid. Harris corner scores rank and retain the top $N=1000$ points.</li>
+<h3 class="subsection-title">7. Feature Description: Gradient Histograms vs. Steered rBRIEF</h3>
+<li class="list-item"><strong>SIFT (128-D Float32)</strong>: 8-bin gradient orientation histograms computed over a $4\times4$ grid of spatial subregions around the keypoint, normalized to unit $L_2$ length.</li>
+<li class="list-item"><strong>ORB (256-Bit Binary)</strong>: Orientation angle $\theta = \text{atan2}(m_{01}, m_{10})$ computed from image moments $m_{pq}$. Evaluates 256 steered pairwise binary intensity tests $\tau(p; \mathbf{x}_i, \mathbf{y}_i)$.</li>
+<h3 class="subsection-title">8. Descriptor Matching & Lowe's Ratio Test</h3>
+<li class="list-item"><strong>SIFT</strong>: Euclidean ($L_2$) distance with Lowe's ratio test ($d_1 < 0.75 \cdot d_2$).</li>
+<li class="list-item"><strong>ORB</strong>: Hamming distance with bidirectional cross-check matching.</li>
+<h3 class="subsection-title">9. Robust Geometric Estimation via RANSAC</h3>
+<li class="list-item-ordered">Randomly sample 4 point pairs.</li>
+<li class="list-item-ordered">Solve candidate $H_{cand}$ via DLT.</li>
+<li class="list-item-ordered">Classify points as inliers if $e_i < 5.0\text{ px}$.</li>
+<li class="list-item-ordered">Re-estimate $H$ on all inliers via SVD least-squares refinement.</li>
+<h3 class="subsection-title">10. Homography Matrix Diagnostics & Degeneracy Checks</h3>
+<li class="list-item"><strong>Determinant Check</strong>: $\det(H) \in [10^{-6}, 10^6]$.</li>
+<li class="list-item"><strong>Condition Number</strong>: $\text{cond}(H) < 10^8$.</li>
+<li class="list-item"><strong>Corner Bounds Sanity</strong>: Verifies warped corners remain within canvas boundaries.</li>
+<h3 class="subsection-title">11. Dynamic Canvas Geometry & Perspective Warping</h3>
+<p class="paragraph">$$x_{offset} = \max(0, -\min(x_{warped})), \quad y_{offset} = \max(0, -\min(y_{warped}))$$</p>
+<p class="paragraph">$$T = \begin{bmatrix} 1 & 0 & x_{offset} \\ 0 & 1 & y_{offset} \\ 0 & 0 & 1 \end{bmatrix}, \quad H_{adjusted} = T \cdot H$$</p>
+<h3 class="subsection-title">12. Multi-Image Stitching & Distance-Weighted Alpha Blending</h3>
+<p class="paragraph">In overlap regions, pixel values are blended using Euclidean distance transforms:</p>
+<p class="paragraph">$$I_{blend}(x, y) = \frac{D_1(x, y)}{D_1(x, y) + D_2(x, y)} I_1(x, y) + \frac{D_2(x, y)}{D_1(x, y) + D_2(x, y)} I_2(x, y)$$</p>
+<hr class="divider">
+<h2 class="section-title">Part III: Empirical Research & Benchmarks</h2>
+<h3 class="subsection-title">13. Quantitative 8-Metric Evaluation Framework</h3>
+<li class="list-item"><strong>M1: Keypoint Count</strong>: Total detected interest points per view.</li>
+<li class="list-item"><strong>M2: Match Count</strong>: Initial filtered correspondences.</li>
+<li class="list-item"><strong>M3: RANSAC Inlier Count</strong>: Number of geometrically verified correspondences.</li>
+<li class="list-item"><strong>M4: Inlier Ratio</strong>: Ratio of inliers to good matches ($N_{inliers} / N_{matches}$).</li>
+<li class="list-item"><strong>M5: Execution Timing</strong>: Stage-wise profiling (detection, matching, RANSAC, total).</li>
+<li class="list-item"><strong>M6: Panorama Quality</strong>: Non-black pixel coverage ratio and Laplacian gradient sharpness.</li>
+<li class="list-item"><strong>M7: Mean Reprojection Error</strong>: Average pixel distance of inlier projections.</li>
+<li class="list-item"><strong>M8: Homography Success</strong>: Boolean status with failure root cause logging.</li>
+<h3 class="subsection-title">14. 5 Research Benchmark Experiments & Comparative Analysis</h3>
+<div class="table-container"><table class="academic-table"><thead><tr><th>Benchmark Experiment</th><th>SIFT Inlier Ratio</th><th>ORB Inlier Ratio</th><th>SIFT Reproj Error</th><th>ORB Reproj Error</th><th>SIFT Latency</th><th>ORB Latency</th></tr></thead><tbody><tr><td><strong>Baseline (3 Images)</strong></td><td><strong>59.64%</strong></td><td>37.74%</td><td><strong>0.14 px</strong></td><td>0.93 px</td><td>1.82 s</td><td>2.06 s</td></tr><tr><td><strong>Rotation ($0^\circ$–$180^\circ$)</strong></td><td><strong>94.57%</strong></td><td>91.74%</td><td><strong>0.17 px</strong></td><td>1.15 px</td><td>2.24 s</td><td><strong>1.87 s</strong></td></tr><tr><td><strong>Scale ($0.5\times$–$2.0\times$)</strong></td><td>96.24%</td><td><strong>97.23%</strong></td><td><strong>0.18 px</strong></td><td>0.23 px</td><td>2.52 s</td><td><strong>2.40 s</strong></td></tr><tr><td><strong>Viewpoint Shear</strong></td><td><strong>90.55%</strong></td><td>84.87%</td><td><strong>0.28 px</strong></td><td>0.97 px</td><td>4.90 s</td><td><strong>4.46 s</strong></td></tr><tr><td><strong>Illumination ($\Delta\beta, \alpha$)</strong></td><td><strong>91.50%</strong></td><td>87.43%</td><td><strong>0.27 px</strong></td><td>0.38 px</td><td>4.58 s</td><td><strong>4.36 s</strong></td></tr></tbody></table></div>
+<h3 class="subsection-title">15. Before vs. After RANSAC In-Depth Analysis</h3>
+<p class="paragraph">Before RANSAC, raw matches contain false correspondences. RANSAC eliminates outliers and ensures only valid geometric consensus pairs determine the projective warp.</p>
+<hr class="divider">
+<h2 class="section-title">Part IV: Diagnostics & Recovery</h2>
+<h3 class="subsection-title">16. Failure Diagnostics Taxonomy (F1–F5)</h3>
+<li class="list-item"><strong>F1: Low Keypoints ($N < 4$)</strong>: Textureless scenes or blur. Aborts estimation.</li>
+<li class="list-item"><strong>F2: Low Overlap ($N_{matches} < 4$)</strong>: Overlap $< 15\%$. Prevents rank-deficient DLT solver.</li>
+<li class="list-item"><strong>F3: Outlier Dominance ($> 95\%$)</strong>: RANSAC fails to find consensus. Flags failure in log.</li>
+<li class="list-item"><strong>F4: Degenerate Homography</strong>: Collinear points ($\det(H) \notin [10^{-6}, 10^6]$).</li>
+<li class="list-item"><strong>F5: Depth Parallax</strong>: 3D camera translation in non-planar scenes causes local ghosting.</li>
+<hr class="divider">
+<h2 class="section-title">Part V: Application Interfaces & User Manual</h2>
+<h3 class="subsection-title">17. Interactive Web Dashboard Manual</h3>
+<li class="list-item"><strong>Preset Scenes</strong>: 1-click sample scene loading.</li>
+<li class="list-item"><strong>Custom Upload</strong>: Drag-and-drop 2 to 6 photos.</li>
+<li class="list-item"><strong>Dual Benchmark Mode</strong>: Runs SIFT and ORB side-by-side.</li>
+<li class="list-item"><strong>Live Stress Playground</strong>: Interactive sliders for rotation, scale, shear, and illumination.</li>
+<h3 class="subsection-title">18. CLI Utilities & Automated Benchmark Runners</h3>
+<pre class="code-block"><code># Run SIFT CLI pipeline
+python scripts/run_pipeline.py --algorithm sift --data data/raw --output outputs/sift
+
+# Run all 5 research experiments
+python experiments/run_all.py</code></pre>
+<h3 class="subsection-title">19. Google Colab Integration Guide</h3>
+<p class="paragraph">Open <code>notebooks/analysis.ipynb</code> in Google Colab to run all pipeline stages interactively.</p>
+<hr class="divider">
+<h2 class="section-title">Part VI: Production Cloud Deployment & Verification</h2>
+<h3 class="subsection-title">20. Cloud Deployment Guide (Render, Vercel, Docker)</h3>
+<li class="list-item"><strong>Render</strong>: Detects <code>render.yaml</code> and deploys automatically.</li>
+<li class="list-item"><strong>Vercel</strong>: Routes through serverless entrypoint <code>api/index.py</code>.</li>
+<li class="list-item"><strong>Docker</strong>: <code>docker build -t panorama-app . && docker run -p 5000:5000 panorama-app</code>.</li>
+<h3 class="subsection-title">21. Pytest Test Suite & Validation Report</h3>
+<pre class="code-block"><code>pytest tests/ -v
+# 31 passed in 1.40s (100% passing)</code></pre>
+<h3 class="subsection-title">22. Academic References</h3>
+<li class="list-item-ordered"><strong>Lowe, D. G. (2004).</strong> Distinctive image features from scale-invariant keypoints. *IJCV*, 60(2), 91–110.</li>
+<li class="list-item-ordered"><strong>Rublee, E., et al. (2011).</strong> ORB: An efficient alternative to SIFT or SURF. In *IEEE ICCV* (pp. 2564–2571).</li>
+<li class="list-item-ordered"><strong>Fischler, M. A., & Bolles, R. C. (1981).</strong> Random sample consensus: a paradigm for model fitting. *CACM*, 24(6), 381–395.</li>
+<li class="list-item-ordered"><strong>Brown, M., & Lowe, D. G. (2007).</strong> Automatic panoramic image stitching using invariant features. *IJCV*, 74(1), 59–73.</li>
+<li class="list-item-ordered"><strong>Hartley, R., & Zisserman, A. (2004).</strong> *Multiple View Geometry in Computer Vision* (2nd ed.). Cambridge University Press.</li>
+
+<div class="footer-note">
+  <span>CSCD608: Advanced Computer Vision — Examination Project</span>
+  <span>Department of Computer Science</span>
+</div>
+
+</body>
+</html>
