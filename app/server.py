@@ -70,11 +70,19 @@ def draw_keypoints_viz(img_gray: np.ndarray, keypoints: list, method: str) -> np
 def draw_matches_viz(img1: np.ndarray, kp1: list,
                      img2: np.ndarray, kp2: list,
                      matches: list, is_inlier: bool = False) -> np.ndarray:
-    """Render match lines between two images."""
-    color = (0, 220, 0) if is_inlier else (0, 0, 255)
+    """Render clean, publication-quality match lines between two views."""
+    # For inliers use crisp green; for initial matches use distinct soft gold/cyan
+    color = (0, 220, 110) if is_inlier else (0, 165, 255)
+    # Display up to 60 evenly distributed matches for visual clarity
+    display_matches = matches
+    if len(matches) > 60:
+        step = len(matches) / 60
+        display_matches = [matches[int(i * step)] for i in range(60)]
+
     img_matches = cv2.drawMatches(
-        img1, kp1, img2, kp2, matches[:150], None,
+        img1, kp1, img2, kp2, display_matches, None,
         matchColor=color,
+        singlePointColor=(120, 120, 120),
         flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS
     )
     return img_matches

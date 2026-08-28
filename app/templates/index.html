@@ -138,17 +138,19 @@
     <main class="workspace">
       
       <!-- Workspace Navigation Tabs -->
-      <nav class="tabs-nav">
-        <button class="tab-link active" data-tab="tabPanorama">🖼️ Final Panorama</button>
-        <button class="tab-link" data-tab="tabBenchmark">📊 SIFT vs. ORB Benchmark</button>
-        <button class="tab-link" data-tab="tabKeypoints">🔍 1. Keypoints</button>
-        <button class="tab-link" data-tab="tabRawMatches">🔗 2. Initial Matches</button>
-        <button class="tab-link" data-tab="tabRansac">🛡️ 3. Before vs. After RANSAC</button>
-        <button class="tab-link" data-tab="tabHomography">📐 4. Homography Matrix</button>
-        <button class="tab-link" data-tab="tabStress">🧪 Transformation Simulator</button>
-        <a href="/docs" target="_blank" class="tab-link" style="color: #a78bfa; font-weight: 700; background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.4); text-decoration: none; margin-left: auto;">
-          📖 System Docs (A-Z) ↗
-        </a>
+      <nav class="tabs-nav-container">
+        <div class="tabs-scroll-area">
+          <button class="tab-link active" data-tab="tabPanorama">🖼️ Final Panorama</button>
+          <button class="tab-link" data-tab="tabBenchmark">📊 SIFT vs. ORB</button>
+          <button class="tab-link" data-tab="tabKeypoints">🔍 1. Keypoints</button>
+          <button class="tab-link" data-tab="tabRawMatches">🔗 2. Matches</button>
+          <button class="tab-link" data-tab="tabRansac">🛡️ 3. RANSAC Inliers</button>
+          <button class="tab-link" data-tab="tabHomography">📐 4. Homography</button>
+          <button class="tab-link" data-tab="tabStress">🧪 Simulator</button>
+          <a href="/docs" target="_blank" class="tab-link-docs">
+            📖 Docs (A-Z) ↗
+          </a>
+        </div>
       </nav>
 
       <!-- TAB 1: FINAL PANORAMA -->
@@ -195,20 +197,22 @@
 
       <!-- TAB 2: DUAL BENCHMARK -->
       <section id="tabBenchmark" class="tab-content">
-        <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem;">SIFT vs. ORB Comparative Benchmark</h2>
+        <div class="stage-header">
+          <h2 class="stage-title"><span class="stage-tag">Comparative</span> SIFT vs. ORB Dual Benchmark</h2>
+        </div>
         
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;" id="benchmarkGrid">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;" id="benchmarkGrid">
           
           <!-- SIFT Card -->
           <div class="glass-card" style="border-top: 4px solid var(--accent-blue);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-              <h3 style="font-size: 1.1rem; color: var(--accent-blue);">SIFT (Scale-Invariant Feature Transform)</h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+              <h3 style="font-size: 1.05rem; color: #93c5fd; font-weight: 700;">SIFT (Scale-Invariant Feature Transform)</h3>
               <span class="badge">Euclidean L2 Norm</span>
             </div>
-            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
+            <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 0.85rem;">
               Continuous scale-space Difference-of-Gaussians extrema with 128-dimensional floating-point gradient histograms.
             </p>
-            <div class="metrics-row" style="margin-bottom: 1rem;">
+            <div class="metrics-row" style="margin-bottom: 0.85rem;">
               <div class="metric-card"><span class="metric-label">Avg Keypoints</span><span class="metric-value" id="benchSiftKp">1,253</span></div>
               <div class="metric-card"><span class="metric-label">Inlier Ratio</span><span class="metric-value" id="benchSiftRatio">59.6%</span></div>
               <div class="metric-card"><span class="metric-label">Reproj Error</span><span class="metric-value" id="benchSiftErr">0.14 px</span></div>
@@ -220,14 +224,14 @@
 
           <!-- ORB Card -->
           <div class="glass-card" style="border-top: 4px solid var(--accent-amber);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-              <h3 style="font-size: 1.1rem; color: var(--accent-amber);">ORB (Oriented FAST & Rotated BRIEF)</h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+              <h3 style="font-size: 1.05rem; color: #fcd34d; font-weight: 700;">ORB (Oriented FAST & Rotated BRIEF)</h3>
               <span class="badge badge-amber">Hamming Distance</span>
             </div>
-            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
+            <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 0.85rem;">
               Pyramid FAST corner detector with intensity-centroid patch orientation and 256-bit steered binary bitstrings.
             </p>
-            <div class="metrics-row" style="margin-bottom: 1rem;">
+            <div class="metrics-row" style="margin-bottom: 0.85rem;">
               <div class="metric-card"><span class="metric-label">Avg Keypoints</span><span class="metric-value" id="benchOrbKp">1,000</span></div>
               <div class="metric-card"><span class="metric-label">Inlier Ratio</span><span class="metric-value" id="benchOrbRatio">37.7%</span></div>
               <div class="metric-card"><span class="metric-label">Reproj Error</span><span class="metric-value" id="benchOrbErr">0.93 px</span></div>
@@ -242,7 +246,9 @@
 
       <!-- TAB 3: KEYPOINTS -->
       <section id="tabKeypoints" class="tab-content">
-        <h2 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem;">Stage 2: Keypoint Detection & Orientation Assignment</h2>
+        <div class="stage-header">
+          <h2 class="stage-title"><span class="stage-tag">Stage 2</span> Distinctive Keypoint Detection & Orientation</h2>
+        </div>
         <div id="keypointsGallery" class="gallery-grid">
           <!-- Populated by JS -->
         </div>
@@ -250,7 +256,9 @@
 
       <!-- TAB 4: RAW MATCHES -->
       <section id="tabRawMatches" class="tab-content">
-        <h2 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem;">Stage 3: Initial Feature Correspondences (Filtered Matches)</h2>
+        <div class="stage-header">
+          <h2 class="stage-title"><span class="stage-tag">Stage 3</span> Initial Feature Correspondences (Filtered Matches)</h2>
+        </div>
         <div id="rawMatchesGallery" class="gallery-grid" style="grid-template-columns: 1fr;">
           <!-- Populated by JS -->
         </div>
@@ -258,7 +266,9 @@
 
       <!-- TAB 5: BEFORE VS AFTER RANSAC -->
       <section id="tabRansac" class="tab-content">
-        <h2 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem;">Stage 4: Before vs. After RANSAC Outlier Rejection</h2>
+        <div class="stage-header">
+          <h2 class="stage-title"><span class="stage-tag">Stage 4</span> Before vs. After RANSAC Outlier Rejection</h2>
+        </div>
         <div id="ransacGallery" class="gallery-grid" style="grid-template-columns: 1fr;">
           <!-- Populated by JS -->
         </div>
@@ -266,7 +276,9 @@
 
       <!-- TAB 6: HOMOGRAPHY MATRIX -->
       <section id="tabHomography" class="tab-content">
-        <h2 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem;">Stage 5: Estimated 3×3 Homography Matrices & Diagnostics</h2>
+        <div class="stage-header">
+          <h2 class="stage-title"><span class="stage-tag">Stage 5</span> Estimated 3×3 Homography Matrices & Diagnostics</h2>
+        </div>
         <div id="homographyContainer" style="display: flex; flex-direction: column; gap: 1rem;">
           <!-- Populated by JS -->
         </div>
@@ -274,7 +286,9 @@
 
       <!-- TAB 7: LIVE STRESS TEST PLAYGROUND -->
       <section id="tabStress" class="tab-content">
-        <h2 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem;">Interactive Transformation Stress Test Simulator</h2>
+        <div class="stage-header">
+          <h2 class="stage-title"><span class="stage-tag">Simulator</span> Real-Time Transformation Stress Test</h2>
+        </div>
         <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.5rem;">
           Simulate camera rotations, scale variations, perspective shears, and illumination shifts in real-time to inspect algorithm robustness.
         </p>
