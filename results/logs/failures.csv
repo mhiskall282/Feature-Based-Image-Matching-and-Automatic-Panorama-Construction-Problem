@@ -42,3 +42,6 @@ timestamp,experiment,algorithm,image_pair,failure_stage,failure_reason
 2026-08-28T03:21:22.908513+00:00,test,,t1-t2,,,,,,,,,,,,,,,,findHomography_returned_none,,,,,,,,,,,,,,,
 2026-08-28T03:21:23.085896+00:00,test,,dark-dark,,,,,,,,,,,,,,,,"too_few_keypoints: img1=0, img2=0",,,,,,,,,,,,,,,
 2026-08-28T03:21:23.174417+00:00,test,,ratio_test,,,,,,,,,,,,,,,,findHomography_returned_none,,,,,,,,,,,,,,,
+2026-08-28T03:31:56.166543+00:00,test,,t1-t2,,,,,,,,,,,,,,,,findHomography_returned_none,,,,,,,,,,,,,,,
+2026-08-28T03:31:56.368229+00:00,test,,dark-dark,,,,,,,,,,,,,,,,"too_few_keypoints: img1=0, img2=0",,,,,,,,,,,,,,,
+2026-08-28T03:31:56.436294+00:00,test,,ratio_test,,,,,,,,,,,,,,,,findHomography_returned_none,,,,,,,,,,,,,,,

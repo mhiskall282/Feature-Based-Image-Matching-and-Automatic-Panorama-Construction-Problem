@@ -28,4 +28,4 @@ COPY . /workspace/
 EXPOSE 5000
 
 # Start production server with gunicorn
-CMD ["gunicorn", "-w", "2", "--threads", "4", "-b", "0.0.0.0:5000", "app.server:app"]
+CMD ["gunicorn", "-w", "2", "--threads", "4", "-b", "0.0.0.0:5000", "wsgi:app"]
