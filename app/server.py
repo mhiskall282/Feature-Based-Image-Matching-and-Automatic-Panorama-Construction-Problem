@@ -99,7 +99,13 @@ def index():
 
 
 @app.route("/docs")
+@app.route("/docs/")
 @app.route("/documentation")
+@app.route("/documentation/")
+@app.route("/doc")
+@app.route("/doc/")
+@app.route("/manual")
+@app.route("/guide")
 def documentation():
     """Render the in-depth GitBook-style documentation portal."""
     return render_template("docs.html")

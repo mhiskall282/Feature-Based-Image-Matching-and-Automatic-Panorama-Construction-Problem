@@ -24,8 +24,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     print("\n" + "="*70)
-    print("CSCD608 ADVANCED COMPUTER VISION - INTERACTIVE WEB DASHBOARD")
-    print(f"URL: http://{args.host}:{args.port}/")
+    print("CSCD608 ADVANCED COMPUTER VISION - PANORAMA WEB APPLICATION")
+    print("="*70)
+    print(f"  • Main Dashboard:   http://{args.host}:{args.port}/")
+    print(f"  • Documentation:    http://{args.host}:{args.port}/docs")
+    print(f"  • API Endpoints:    http://{args.host}:{args.port}/api/presets")
     print("="*70 + "\n")
 
-    app.run(host=args.host, port=args.port, debug=False)
+    app.run(host=args.host, port=args.port, debug=False, threaded=True)
